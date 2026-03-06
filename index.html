@@ -28,15 +28,34 @@ max-width:420px;
 margin:auto;
 }
 
-select{
+select,input{
 padding:8px;
-margin-bottom:15px;
+margin-bottom:10px;
+}
+
+.cards{
+display:flex;
+gap:10px;
+margin-bottom:20px;
+}
+
+.card{
+flex:1;
+background:#eee;
+padding:15px;
+border-radius:6px;
+text-align:center;
+cursor:pointer;
+}
+
+.card h3{
+margin:0;
+font-size:28px;
 }
 
 table{
 width:100%;
 border-collapse:collapse;
-margin-top:20px;
 }
 
 th,td{
@@ -49,13 +68,6 @@ background:#ffe0e0;
 padding:10px;
 margin-bottom:10px;
 border-radius:6px;
-}
-
-.card{
-background:#eee;
-padding:12px;
-border-radius:6px;
-margin-bottom:10px;
 }
 
 </style>
@@ -78,9 +90,41 @@ margin-bottom:10px;
 
 <select id="turma"></select>
 
+<div class="cards">
+
+<div class="card" onclick="filtrar('Frequentando')">
+<h3 id="freq">0</h3>
+Frequentando
+</div>
+
+<div class="card" onclick="filtrar('Risco')">
+<h3 id="risco">0</h3>
+Risco
+</div>
+
+<div class="card" onclick="filtrar('Possível desistência')">
+<h3 id="poss">0</h3>
+Possível desistência
+</div>
+
+<div class="card" onclick="filtrar('Desistente')">
+<h3 id="desist">0</h3>
+Desistentes
+</div>
+
+</div>
+
 <div class="chart-box">
 <canvas id="grafico"></canvas>
 </div>
+
+<h3>Buscar aluno</h3>
+
+<input id="busca" placeholder="Digite o nome do aluno">
+
+<h3>Ranking de faltas</h3>
+
+<div id="ranking"></div>
 
 <h3>Lista de alunos</h3>
 
@@ -99,6 +143,10 @@ margin-bottom:10px;
 
 </table>
 
+<br>
+
+<button onclick="window.print()">Imprimir relatório</button>
+
 </div>
 
 <script>
@@ -106,6 +154,7 @@ margin-bottom:10px;
 const SHEET_ID="1NBBtdsqbR4FzNyNsCuG3K3HdSRk6QzT-QR2mnjHEXJ0";
 
 let dados=[];
+let filtrados=[];
 let chart;
 
 function classificar(f){
@@ -162,9 +211,6 @@ const json=JSON.parse(data.substring(47).slice(0,-2));
 
 const rows=json.table.rows;
 
-let freq=0;
-let risco=0;
-let poss=0;
 let desist=0;
 
 rows.forEach(r=>{
@@ -175,28 +221,9 @@ let faltas=r.c[1]?.v;
 if(!aluno) return;
 if(!faltas && faltas!==0) return;
 
-let c=classificar(faltas);
-
-if(c==="Frequentando")freq++;
-else if(c==="Risco")risco++;
-else if(c==="Possível desistência")poss++;
-else desist++;
+if(classificar(faltas)=="Desistente") desist++;
 
 });
-
-let div=document.createElement("div");
-
-div.className="card";
-
-div.innerHTML=`
-<b>${turma}</b><br>
-Frequentando: ${freq}<br>
-Risco: ${risco}<br>
-Possível desistência: ${poss}<br>
-Desistentes: ${desist}
-`;
-
-document.getElementById("painelTurmas").appendChild(div);
 
 if(desist>5){
 
@@ -241,6 +268,8 @@ faltas:faltas
 
 });
 
+filtrados=[...dados];
+
 mostrar();
 
 });
@@ -258,7 +287,7 @@ const tabela=document.getElementById("tabela");
 
 tabela.innerHTML="";
 
-dados.forEach((a,i)=>{
+filtrados.forEach((a,i)=>{
 
 let c=classificar(a.faltas);
 
@@ -279,6 +308,13 @@ tr.innerHTML=`
 tabela.appendChild(tr);
 
 });
+
+document.getElementById("freq").innerText=freq;
+document.getElementById("risco").innerText=risco;
+document.getElementById("poss").innerText=poss;
+document.getElementById("desist").innerText=desist;
+
+ranking();
 
 if(chart)chart.destroy();
 
@@ -301,6 +337,42 @@ maintainAspectRatio:false
 });
 
 }
+
+function ranking(){
+
+let top=[...dados]
+.sort((a,b)=>b.faltas-a.faltas)
+.slice(0,10);
+
+let html="<ol>";
+
+top.forEach(a=>{
+html+=`<li>${a.aluno} — ${a.faltas} faltas</li>`;
+});
+
+html+="</ol>";
+
+document.getElementById("ranking").innerHTML=html;
+
+}
+
+function filtrar(tipo){
+
+filtrados=dados.filter(a=>classificar(a.faltas)===tipo);
+
+mostrar();
+
+}
+
+document.getElementById("busca").addEventListener("input",function(){
+
+let termo=this.value.toLowerCase();
+
+filtrados=dados.filter(a=>a.aluno.toLowerCase().includes(termo));
+
+mostrar();
+
+});
 
 carregarTurmas();
 
