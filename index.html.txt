@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Controle de Frequência</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+
+body{
+font-family:Arial;
+background:#f4f4f4;
+margin:20px;
+}
+
+.container{
+max-width:900px;
+margin:auto;
+background:white;
+padding:20px;
+border-radius:8px;
+}
+
+select{
+padding:8px;
+margin-bottom:20px;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h2>Controle de Frequência</h2>
+
+<select id="turma"></select>
+
+<canvas id="grafico"></canvas>
+
+</div>
+
+<script>
+
+const SHEET_ID = "1NBBtdsqbR4FzNyNsCuG3K3HdSRk6QzT-QR2mnjHEXJ0";
+
+fetch(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json`)
+.then(res => res.text())
+.then(data => {
+
+const json = JSON.parse(data.substr(47).slice(0,-2));
+const rows = json.table.rows;
+
+let dados = [];
+
+rows.forEach(r=>{
+dados.push({
+turma:r.c[0].v,
+aluno:r.c[1].v,
+faltas:r.c[2].v
+});
+});
+
+const turmas = [...new Set(dados.map(d=>d.turma))];
+
+const select = document.getElementById("turma");
+
+turmas.forEach(t=>{
+let opt=document.createElement("option");
+opt.value=t;
+opt.textContent=t;
+select.appendChild(opt);
+});
+
+select.addEventListener("change",()=>mostrar(select.value));
+
+mostrar(turmas[0]);
+
+function mostrar(turma){
+
+const alunos = dados.filter(a=>a.turma===turma);
+
+let freq=0;
+let risco=0;
+let possivel=0;
+let desist=0;
+
+alunos.forEach(a=>{
+
+if(a.faltas<=14) freq++;
+else if(a.faltas<=30) risco++;
+else if(a.faltas<=41) possivel++;
+else desist++;
+
+});
+
+grafico(freq,risco,possivel,desist);
+
+}
+
+});
+
+function grafico(freq,risco,possivel,desist){
+
+new Chart(document.getElementById("grafico"),{
+
+type:"pie",
+
+data:{
+labels:[
+"Frequentando",
+"Risco",
+"Possível desistência",
+"Desistente"
+],
+
+datasets:[{
+data:[freq,risco,possivel,desist]
+}]
+}
+
+});
+
+}
+
+</script>
+
+</body>
+</html>
+
