@@ -48,11 +48,21 @@ margin:0;
 font-size:28px;
 }
 
+/* NOVO LAYOUT DO PAINEL GERAL */
+
+.painel-grid{
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+gap:12px;
+margin-bottom:20px;
+}
+
 .painel-turma{
-background:#eee;
-padding:12px;
-border-radius:6px;
-margin-bottom:10px;
+background:#f2f2f2;
+padding:14px;
+border-radius:8px;
+box-shadow:0 2px 4px rgba(0,0,0,0.08);
+font-size:14px;
 }
 
 table{
@@ -86,7 +96,7 @@ border-radius:6px;
 
 <h3>Painel geral das turmas</h3>
 
-<div id="painelTurmas"></div>
+<div id="painelTurmas" class="painel-grid"></div>
 
 <hr>
 
@@ -382,9 +392,7 @@ mostrar();
 document.getElementById("busca").addEventListener("input",function(){
 
 let termo=this.value.toLowerCase();
-
 filtrados=dados.filter(a=>a.aluno.toLowerCase().includes(termo));
-
 mostrar();
 
 });
