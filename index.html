@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-
 <html lang="pt-br">
 
 <head>
 <meta charset="UTF-8">
 <title>Controle de Frequência</title>
+
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
@@ -16,36 +16,27 @@ padding:20px;
 }
 
 .container{
-max-width:1200px;
+max-width:1100px;
 margin:auto;
 background:white;
 padding:20px;
 border-radius:8px;
 }
 
-.cards{
-display:flex;
-gap:10px;
-margin-bottom:20px;
+.chart-box{
+max-width:420px;
+margin:auto;
 }
 
-.card{
-flex:1;
-background:#eee;
-padding:15px;
-border-radius:6px;
-text-align:center;
-cursor:pointer;
-}
-
-.card h3{
-margin:0;
-font-size:28px;
+select{
+padding:8px;
+margin-bottom:15px;
 }
 
 table{
 width:100%;
 border-collapse:collapse;
+margin-top:20px;
 }
 
 th,td{
@@ -56,14 +47,15 @@ border-bottom:1px solid #ddd;
 .alerta{
 background:#ffe0e0;
 padding:10px;
-margin-bottom:15px;
+margin-bottom:10px;
 border-radius:6px;
 }
 
-textarea{
-width:100%;
-height:100px;
-margin-top:10px;
+.card{
+background:#eee;
+padding:12px;
+border-radius:6px;
+margin-bottom:10px;
 }
 
 </style>
@@ -76,8 +68,6 @@ margin-top:10px;
 
 <h2>Controle de Frequência</h2>
 
-<button onclick="abrirImportar()">Colar relatório</button>
-
 <div id="alertas"></div>
 
 <h3>Painel geral das turmas</h3>
@@ -88,14 +78,17 @@ margin-top:10px;
 
 <select id="turma"></select>
 
+<div class="chart-box">
 <canvas id="grafico"></canvas>
+</div>
 
-<h3>Alunos</h3>
+<h3>Lista de alunos</h3>
 
 <table>
 
 <thead>
 <tr>
+<th>#</th>
 <th>Aluno</th>
 <th>Faltas</th>
 <th>Situação</th>
@@ -105,16 +98,6 @@ margin-top:10px;
 <tbody id="tabela"></tbody>
 
 </table>
-
-<div id="importar" style="display:none">
-
-<h3>Colar relatório</h3>
-
-<textarea id="texto"></textarea>
-
-<button onclick="processar()">Processar</button>
-
-</div>
 
 </div>
 
@@ -186,9 +169,13 @@ let desist=0;
 
 rows.forEach(r=>{
 
-let f=r.c[1]?.v||0;
+let aluno=r.c[0]?.v;
+let faltas=r.c[1]?.v;
 
-let c=classificar(f);
+if(!aluno) return;
+if(!faltas && faltas!==0) return;
+
+let c=classificar(faltas);
 
 if(c==="Frequentando")freq++;
 else if(c==="Risco")risco++;
@@ -202,13 +189,11 @@ let div=document.createElement("div");
 div.className="card";
 
 div.innerHTML=`
-
 <b>${turma}</b><br>
 Frequentando: ${freq}<br>
 Risco: ${risco}<br>
 Possível desistência: ${poss}<br>
 Desistentes: ${desist}
-
 `;
 
 document.getElementById("painelTurmas").appendChild(div);
@@ -241,10 +226,16 @@ dados=[];
 
 rows.forEach(r=>{
 
+let aluno=r.c[0]?.v;
+let faltas=r.c[1]?.v;
+
+if(!aluno) return;
+if(!faltas && faltas!==0) return;
+
 dados.push({
 
-aluno:r.c[0]?.v,
-faltas:r.c[1]?.v||0
+aluno:aluno,
+faltas:faltas
 
 });
 
@@ -267,7 +258,7 @@ const tabela=document.getElementById("tabela");
 
 tabela.innerHTML="";
 
-dados.forEach(a=>{
+dados.forEach((a,i)=>{
 
 let c=classificar(a.faltas);
 
@@ -279,6 +270,7 @@ else desist++;
 let tr=document.createElement("tr");
 
 tr.innerHTML=`
+<td>${i+1}</td>
 <td>${a.aluno}</td>
 <td>${a.faltas}</td>
 <td>${c}</td>
@@ -299,44 +291,14 @@ labels:["Frequentando","Risco","Possível desistência","Desistente"],
 datasets:[{
 data:[freq,risco,poss,desist]
 }]
+},
+
+options:{
+responsive:true,
+maintainAspectRatio:false
 }
 
 });
-
-}
-
-function abrirImportar(){
-
-document.getElementById("importar").style.display="block";
-
-}
-
-function processar(){
-
-let texto=document.getElementById("texto").value;
-
-let linhas=texto.split("\n");
-
-dados=[];
-
-linhas.forEach(l=>{
-
-let partes=l.trim().split(" ");
-
-let faltas=parseInt(partes.pop());
-
-let nome=partes.join(" ");
-
-dados.push({
-
-aluno:nome,
-faltas:faltas
-
-});
-
-});
-
-mostrar();
 
 }
 
