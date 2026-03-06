@@ -1,70 +1,76 @@
 <!DOCTYPE html>
+
 <html lang="pt-br">
+
 <head>
 <meta charset="UTF-8">
 <title>Controle de Frequência</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
+
 body{
-  font-family:Arial;
-  background:#f4f4f4;
-  padding:20px;
+font-family:Arial;
+background:#f4f4f4;
+padding:20px;
 }
 
 .container{
-  max-width:1100px;
-  margin:auto;
-  background:white;
-  padding:20px;
-  border-radius:8px;
+max-width:1200px;
+margin:auto;
+background:white;
+padding:20px;
+border-radius:8px;
 }
 
 select,input{
-  padding:8px;
-  margin-bottom:10px;
+padding:8px;
+margin-bottom:10px;
 }
 
 .cards{
-  display:flex;
-  gap:10px;
-  margin-bottom:15px;
+display:flex;
+gap:10px;
+margin-bottom:20px;
 }
 
 .card{
-  flex:1;
-  background:#eee;
-  padding:10px;
-  border-radius:6px;
-  text-align:center;
-  cursor:pointer;
+flex:1;
+background:#eee;
+padding:15px;
+border-radius:6px;
+text-align:center;
+cursor:pointer;
 }
 
 .card h3{
-  margin:0;
+margin:0;
+font-size:28px;
 }
 
 table{
-  width:100%;
-  border-collapse:collapse;
+width:100%;
+border-collapse:collapse;
+margin-top:10px;
 }
 
 th,td{
-  padding:8px;
-  border-bottom:1px solid #ddd;
+padding:8px;
+border-bottom:1px solid #ddd;
 }
 
 .risco{
-  color:#d97706;
-  font-weight:bold;
+color:#d97706;
+font-weight:bold;
 }
 
 .desistente{
-  color:red;
-  font-weight:bold;
+color:red;
+font-weight:bold;
 }
 
 </style>
+
 </head>
 
 <body>
@@ -76,34 +82,41 @@ th,td{
 <select id="turma"></select>
 
 <div class="cards">
+
 <div class="card" onclick="filtrar('Frequentando')">
-<h3 id="c_freq">0</h3>Frequentando
+<h3 id="freq">0</h3>
+Frequentando
 </div>
 
 <div class="card" onclick="filtrar('Risco')">
-<h3 id="c_risco">0</h3>Risco
+<h3 id="risco">0</h3>
+Risco
 </div>
 
 <div class="card" onclick="filtrar('Possível desistência')">
-<h3 id="c_poss">0</h3>Possível desistência
+<h3 id="poss">0</h3>
+Possível desistência
 </div>
 
 <div class="card" onclick="filtrar('Desistente')">
-<h3 id="c_desist">0</h3>Desistentes
+<h3 id="desist">0</h3>
+Desistentes
 </div>
+
 </div>
 
 <canvas id="grafico"></canvas>
 
 <h3>Ranking de faltas</h3>
+
 <div id="ranking"></div>
 
 <h3>Buscar aluno</h3>
-<input id="busca" placeholder="Digite o nome">
 
-<h3>Lista de alunos</h3>
+<input id="busca" placeholder="Digite o nome do aluno">
 
 <table>
+
 <thead>
 <tr>
 <th>Aluno</th>
@@ -111,7 +124,9 @@ th,td{
 <th>Situação</th>
 </tr>
 </thead>
+
 <tbody id="tabela"></tbody>
+
 </table>
 
 <button onclick="window.print()">Imprimir relatório</button>
@@ -176,10 +191,8 @@ rows.forEach(r=>{
 if(!r.c[0]) return;
 
 dados.push({
-
 aluno:r.c[0]?.v,
 faltas:r.c[1]?.v || 0
-
 });
 
 });
@@ -233,10 +246,10 @@ tabela.appendChild(tr);
 
 });
 
-document.getElementById("c_freq").innerText=freq;
-document.getElementById("c_risco").innerText=risco;
-document.getElementById("c_poss").innerText=poss;
-document.getElementById("c_desist").innerText=desist;
+document.getElementById("freq").innerText=freq;
+document.getElementById("risco").innerText=risco;
+document.getElementById("poss").innerText=poss;
+document.getElementById("desist").innerText=desist;
 
 if(chart){
 chart.destroy();
@@ -257,8 +270,6 @@ data:[freq,risco,poss,desist]
 
 ranking();
 
-alerta();
-
 }
 
 function ranking(){
@@ -276,18 +287,6 @@ html+=`<li>${a.aluno} — ${a.faltas} faltas</li>`;
 html+="</ol>";
 
 document.getElementById("ranking").innerHTML=html;
-
-}
-
-function alerta(){
-
-let criticos=dados.filter(a=>a.faltas>=30);
-
-if(criticos.length>0){
-
-console.log("Alunos críticos:",criticos);
-
-}
 
 }
 
