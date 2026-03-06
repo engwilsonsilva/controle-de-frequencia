@@ -28,11 +28,6 @@ max-width:420px;
 margin:auto;
 }
 
-select,input{
-padding:8px;
-margin-bottom:10px;
-}
-
 .cards{
 display:flex;
 gap:10px;
@@ -51,6 +46,13 @@ cursor:pointer;
 .card h3{
 margin:0;
 font-size:28px;
+}
+
+.painel-turma{
+background:#eee;
+padding:12px;
+border-radius:6px;
+margin-bottom:10px;
 }
 
 table{
@@ -173,7 +175,6 @@ fetch(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&s
 .then(data=>{
 
 const json=JSON.parse(data.substring(47).slice(0,-2));
-
 const rows=json.table.rows;
 
 const select=document.getElementById("turma");
@@ -183,13 +184,11 @@ rows.forEach(r=>{
 let turma=r.c[0].v;
 
 let opt=document.createElement("option");
-
 opt.value=turma;
 opt.textContent=turma;
-
 select.appendChild(opt);
 
-carregarResumo(turma);
+criarPainelTurma(turma);
 
 });
 
@@ -201,16 +200,18 @@ carregarDados(rows[0].c[0].v);
 
 }
 
-function carregarResumo(turma){
+function criarPainelTurma(turma){
 
 fetch(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(turma)}`)
 .then(res=>res.text())
 .then(data=>{
 
 const json=JSON.parse(data.substring(47).slice(0,-2));
-
 const rows=json.table.rows;
 
+let freq=0;
+let risco=0;
+let poss=0;
 let desist=0;
 
 rows.forEach(r=>{
@@ -221,9 +222,28 @@ let faltas=r.c[1]?.v;
 if(!aluno) return;
 if(!faltas && faltas!==0) return;
 
-if(classificar(faltas)=="Desistente") desist++;
+let c=classificar(faltas);
+
+if(c==="Frequentando")freq++;
+else if(c==="Risco")risco++;
+else if(c==="Possível desistência")poss++;
+else desist++;
 
 });
+
+let div=document.createElement("div");
+
+div.className="painel-turma";
+
+div.innerHTML=`
+<b>${turma}</b><br>
+Frequentando: ${freq}<br>
+Risco: ${risco}<br>
+Possível desistência: ${poss}<br>
+Desistentes: ${desist}
+`;
+
+document.getElementById("painelTurmas").appendChild(div);
 
 if(desist>5){
 
@@ -246,7 +266,6 @@ fetch(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&s
 .then(data=>{
 
 const json=JSON.parse(data.substring(47).slice(0,-2));
-
 const rows=json.table.rows;
 
 dados=[];
@@ -260,10 +279,8 @@ if(!aluno) return;
 if(!faltas && faltas!==0) return;
 
 dados.push({
-
 aluno:aluno,
 faltas:faltas
-
 });
 
 });
@@ -284,7 +301,6 @@ let poss=0;
 let desist=0;
 
 const tabela=document.getElementById("tabela");
-
 tabela.innerHTML="";
 
 filtrados.forEach((a,i)=>{
@@ -359,7 +375,6 @@ document.getElementById("ranking").innerHTML=html;
 function filtrar(tipo){
 
 filtrados=dados.filter(a=>classificar(a.faltas)===tipo);
-
 mostrar();
 
 }
