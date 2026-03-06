@@ -1,56 +1,109 @@
 <!DOCTYPE html>
-<html>
-
+<html lang="pt-br">
 <head>
 <meta charset="UTF-8">
-<title>Painel de Frequência</title>
-
+<title>Controle de Frequência</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
-
 body{
-font-family:Arial;
-background:#f4f4f4;
-padding:20px;
+  font-family:Arial;
+  background:#f4f4f4;
+  padding:20px;
 }
 
 .container{
-max-width:1000px;
-margin:auto;
-background:white;
-padding:20px;
-border-radius:8px;
+  max-width:1100px;
+  margin:auto;
+  background:white;
+  padding:20px;
+  border-radius:8px;
+}
+
+select,input{
+  padding:8px;
+  margin-bottom:10px;
+}
+
+.cards{
+  display:flex;
+  gap:10px;
+  margin-bottom:15px;
+}
+
+.card{
+  flex:1;
+  background:#eee;
+  padding:10px;
+  border-radius:6px;
+  text-align:center;
+  cursor:pointer;
+}
+
+.card h3{
+  margin:0;
 }
 
 table{
-width:100%;
-border-collapse:collapse;
+  width:100%;
+  border-collapse:collapse;
 }
 
 th,td{
-padding:8px;
-border-bottom:1px solid #ddd;
+  padding:8px;
+  border-bottom:1px solid #ddd;
+}
+
+.risco{
+  color:#d97706;
+  font-weight:bold;
+}
+
+.desistente{
+  color:red;
+  font-weight:bold;
 }
 
 </style>
-
 </head>
 
 <body>
 
 <div class="container">
 
-<h2>Painel de Frequência</h2>
+<h2>Controle de Frequência</h2>
 
 <select id="turma"></select>
 
+<div class="cards">
+<div class="card" onclick="filtrar('Frequentando')">
+<h3 id="c_freq">0</h3>Frequentando
+</div>
+
+<div class="card" onclick="filtrar('Risco')">
+<h3 id="c_risco">0</h3>Risco
+</div>
+
+<div class="card" onclick="filtrar('Possível desistência')">
+<h3 id="c_poss">0</h3>Possível desistência
+</div>
+
+<div class="card" onclick="filtrar('Desistente')">
+<h3 id="c_desist">0</h3>Desistentes
+</div>
+</div>
+
 <canvas id="grafico"></canvas>
+
+<h3>Ranking de faltas</h3>
+<div id="ranking"></div>
+
+<h3>Buscar aluno</h3>
+<input id="busca" placeholder="Digite o nome">
 
 <h3>Lista de alunos</h3>
 
 <table>
-
 <thead>
 <tr>
 <th>Aluno</th>
@@ -58,10 +111,10 @@ border-bottom:1px solid #ddd;
 <th>Situação</th>
 </tr>
 </thead>
-
 <tbody id="tabela"></tbody>
-
 </table>
+
+<button onclick="window.print()">Imprimir relatório</button>
 
 </div>
 
@@ -70,6 +123,7 @@ border-bottom:1px solid #ddd;
 const SHEET_ID="1NBBtdsqbR4FzNyNsCuG3K3HdSRk6QzT-QR2mnjHEXJ0";
 
 let dados=[];
+let filtrados=[];
 let chart;
 
 function carregarTurmas(){
@@ -119,6 +173,8 @@ dados=[];
 
 rows.forEach(r=>{
 
+if(!r.c[0]) return;
+
 dados.push({
 
 aluno:r.c[0]?.v,
@@ -127,6 +183,8 @@ faltas:r.c[1]?.v || 0
 });
 
 });
+
+filtrados=[...dados];
 
 mostrar();
 
@@ -154,7 +212,7 @@ const tabela=document.getElementById("tabela");
 
 tabela.innerHTML="";
 
-dados.forEach(a=>{
+filtrados.forEach(a=>{
 
 let c=classificar(a.faltas);
 
@@ -175,6 +233,11 @@ tabela.appendChild(tr);
 
 });
 
+document.getElementById("c_freq").innerText=freq;
+document.getElementById("c_risco").innerText=risco;
+document.getElementById("c_poss").innerText=poss;
+document.getElementById("c_desist").innerText=desist;
+
 if(chart){
 chart.destroy();
 }
@@ -192,12 +255,63 @@ data:[freq,risco,poss,desist]
 
 });
 
+ranking();
+
+alerta();
+
 }
+
+function ranking(){
+
+let top=[...dados]
+.sort((a,b)=>b.faltas-a.faltas)
+.slice(0,10);
+
+let html="<ol>";
+
+top.forEach(a=>{
+html+=`<li>${a.aluno} — ${a.faltas} faltas</li>`;
+});
+
+html+="</ol>";
+
+document.getElementById("ranking").innerHTML=html;
+
+}
+
+function alerta(){
+
+let criticos=dados.filter(a=>a.faltas>=30);
+
+if(criticos.length>0){
+
+console.log("Alunos críticos:",criticos);
+
+}
+
+}
+
+function filtrar(tipo){
+
+filtrados=dados.filter(a=>classificar(a.faltas)===tipo);
+
+mostrar();
+
+}
+
+document.getElementById("busca").addEventListener("input",function(){
+
+let termo=this.value.toLowerCase();
+
+filtrados=dados.filter(a=>a.aluno.toLowerCase().includes(termo));
+
+mostrar();
+
+});
 
 carregarTurmas();
 
 </script>
 
 </body>
-
 </html>
