@@ -140,6 +140,36 @@ Desistentes
 
 <div class="chart-box">
 <canvas id="grafico"></canvas>
+  function graficoAcoes(){
+
+let contagem={};
+
+historico.forEach(h=>{
+
+if(!contagem[h.acao]) contagem[h.acao]=0;
+
+contagem[h.acao]++;
+
+});
+
+let labels=Object.keys(contagem);
+let valores=Object.values(contagem);
+
+new Chart(document.getElementById("graficoAcoes"),{
+
+type:"bar",
+
+data:{
+labels:labels,
+datasets:[{
+label:"Ações realizadas",
+data:valores
+}]
+}
+
+});
+
+}
 </div>
 
 <h3>Buscar aluno</h3>
@@ -192,7 +222,7 @@ if(f<=41) return "Possível Desistência";
 return "Desistente";
 
 }
-  function carregarHistorico(){
+function carregarHistorico(){
 
 fetch(HIST_URL)
 .then(res=>res.text())
@@ -224,11 +254,60 @@ acao
 });
 
 verificarAlertas();
+graficoAcoes();
 
 });
 
 }
+  
+function ultimaAcao(aluno){
 
+let registros=historico
+.filter(h=>h.aluno===aluno)
+.sort((a,b)=>new Date(b.data)-new Date(a.data));
+
+if(registros.length===0) return "-";
+
+return registros[0].acao;
+
+}
+ function verHistorico(aluno){
+
+let registros=historico
+.filter(h=>h.aluno===aluno)
+.sort((a,b)=>new Date(b.data)-new Date(a.data));
+
+let texto=`Histórico de ${aluno}\n\n`;
+
+registros.forEach(r=>{
+texto+=`${r.data} - ${r.acao}\n`;
+});
+
+alert(texto);
+
+} 
+
+function verificarAlertas(){
+
+let risco=dados.filter(a=>classificar(a.faltas)!=="Frequentando");
+
+let semAcao=risco.filter(a=>
+!historico.some(h=>h.aluno===a.aluno)
+);
+
+if(semAcao.length>0){
+
+document.getElementById("alertas").innerHTML+=`
+<div class="alerta">
+⚠ ${semAcao.length} alunos em risco sem ação registrada
+</div>
+`;
+
+}
+
+}
+
+  
 function carregarTurmas(){
 
 fetch(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=Turmas`)
@@ -498,12 +577,14 @@ acao:acao
 });
 
 alert("Ação registrada no Histórico");
-
+carregarHistorico();
+carregarTurmas();
 }
 </script>
 
 </body>
 </html>
+
 
 
 
