@@ -425,10 +425,36 @@ mostrar();
 });
 
 carregarTurmas();
+  
+const SCRIPT_URL=https://script.google.com/macros/s/AKfycbw8OeSxyL3hvIeibgwhu6v-ejJx3MDGzVdg9ZjQZP6vKqF4x6ne33dpD3vbbexQ5IeC/exec;
 
+function registrarAcao(aluno,faltas){
+
+let acao = prompt("Digite a ação realizada:");
+
+if(!acao) return;
+
+let turma=document.getElementById("turma").value;
+let data=new Date().toISOString().split("T")[0];
+
+fetch(SCRIPT_URL,{
+method:"POST",
+body:JSON.stringify({
+turma:turma,
+aluno:aluno,
+faltas:faltas,
+data:data,
+acao:acao
+})
+});
+
+alert("Ação registrada no histórico");
+
+}
 </script>
 
 </body>
 </html>
+
 
 
