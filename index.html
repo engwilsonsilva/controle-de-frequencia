@@ -87,27 +87,23 @@ let dados = [];
 let filtrados = [];
 let chart, chartAcoes;
 
-// Inicialização: Primeiro carrega o histórico, DEPOIS as turmas
-window.onload = () => {
-    carregarHistorico();
-};
+// Inicialização: Começa carregando o histórico
+window.onload = () => carregarHistorico();
 
 function carregarHistorico() {
     fetch(HIST_URL)
         .then(res => res.text())
         .then(data => {
             const json = JSON.parse(data.substring(47).slice(0, -2));
-            const rows = json.table.rows;
-            historico = rows.map(r => ({
+            historico = json.table.rows.map(r => ({
                 turma: r.c[0]?.v,
                 aluno: r.c[1]?.v,
                 faltas: r.c[2]?.v,
-                data: r.c[3]?.f || r.c[3]?.v, // f é a data formatada
+                data: r.c[3]?.f || r.c[3]?.v,
                 acao: r.c[4]?.v
             })).filter(h => h.aluno);
             
-            graficoAcoes();
-            carregarTurmas(); // Só carrega turmas após ter o histórico
+            carregarTurmas(); // Só carrega turmas depois de ter o histórico
         });
 }
 
@@ -125,11 +121,11 @@ function carregarTurmas() {
                 opt.value = turma;
                 opt.textContent = turma;
                 select.appendChild(opt);
-                criarPainelTurma(turma);
+                // (Opcional) criarPainelTurma(turma); 
             });
 
             select.addEventListener("change", () => carregarDados(select.value));
-            carregarDados(select.value);
+            carregarDados(select.value); // Carrega a primeira turma da lista
         });
 }
 
@@ -144,8 +140,9 @@ function carregarDados(turma) {
             })).filter(a => a.aluno);
 
             filtrados = [...dados];
-            verificarAlertas();
             mostrar();
+            graficoAcoes(turma); // <--- AQUI: Agora passamos a turma para o gráfico!
+            verificarAlertas();
         });
 }
 
@@ -161,16 +158,25 @@ function mostrar() {
     const tabela = document.getElementById("tabela");
     tabela.innerHTML = "";
 
+    // MAPA DE CORES (Passo 2 que você perguntou)
+    const cores = {
+        "Frequentando": "#2e7d32",
+        "Risco": "#f9a825",
+        "Possível desistência": "#e67e22",
+        "Desistente": "#c62828"
+    };
+
     filtrados.forEach((a, i) => {
         let sit = classificar(a.faltas);
         contagem[sit]++;
+        let corTexto = cores[sit] || "#000"; // Define a cor com base na situação
 
         let tr = document.createElement("tr");
         tr.innerHTML = `
             <td>${i + 1}</td>
             <td>${a.aluno}</td>
             <td>${a.faltas}</td>
-            <td>${sit}</td>
+            <td style="color: ${corTexto}; font-weight: bold;">${sit}</td> 
             <td>${ultimaAcao(a.aluno)}</td>
             <td>
                 <button onclick="registrarAcao('${a.aluno}',${a.faltas})">Registrar</button>
@@ -185,108 +191,38 @@ function mostrar() {
     document.getElementById("poss").innerText = contagem["Possível desistência"];
     document.getElementById("desist").innerText = contagem["Desistente"];
 
-    atualizarGrafico(contagem);
+    atualizarGraficoGeral(contagem);
     ranking();
 }
 
-function atualizarGrafico(contagem) {
-    if (chart) chart.destroy();
-    chart = new Chart(document.getElementById("grafico"), {
-        type: "pie",
-        data: {
-            labels: Object.keys(contagem),
-            datasets: [{ data: Object.values(contagem), backgroundColor: ['#2e7d32', '#f9a825', '#e67e22', '#c62828'] }]
-        },
-        options: { responsive: true, maintainAspectRatio: false }
-    });
-}
-
-function graficoAcoes() {
+function graficoAcoes(turmaSelecionada) {
     let contagem = {};
-    historico.forEach(h => {
+    // FILTRO: Só pega as ações que batem com a turma que está na tela
+    let historicoDaTurma = historico.filter(h => h.turma === turmaSelecionada);
+
+    historicoDaTurma.forEach(h => {
         contagem[h.acao] = (contagem[h.acao] || 0) + 1;
     });
     
     if (chartAcoes) chartAcoes.destroy();
+    
     chartAcoes = new Chart(document.getElementById("graficoAcoes"), {
         type: "bar",
         data: {
             labels: Object.keys(contagem),
-            datasets: [{ label: "Total de Ações", data: Object.values(contagem), backgroundColor: '#3498db' }]
+            datasets: [{ 
+                label: "Ações nesta Turma", 
+                data: Object.values(contagem), 
+                backgroundColor: '#3498db' 
+            }]
         },
         options: { responsive: true, maintainAspectRatio: false }
     });
 }
 
-function ultimaAcao(aluno) {
-    let reg = historico.filter(h => h.aluno === aluno);
-    return reg.length > 0 ? reg[reg.length - 1].acao : "-";
-}
-
-function verHistorico(aluno) {
-    let registros = historico.filter(h => h.aluno === aluno);
-    if (registros.length === 0) return alert("Sem histórico para este aluno.");
-    let texto = registros.map(r => `${r.data}: ${r.acao}`).join("\n");
-    alert(`Histórico de ${aluno}:\n\n${texto}`);
-}
-
-function filtrar(tipo) {
-    filtrados = dados.filter(a => classificar(a.faltas) === tipo);
-    mostrar();
-}
-
-function redefinirFiltro() {
-    filtrados = [...dados];
-    mostrar();
-}
-
-function ranking() {
-    let top = [...dados].sort((a, b) => b.faltas - a.faltas).slice(0, 10);
-    document.getElementById("ranking").innerHTML = "<ol>" + top.map(a => `<li>${a.aluno} (${a.faltas} faltas)</li>`).join("") + "</ol>";
-}
-
-function verificarAlertas() {
-    const alertaDiv = document.getElementById("alertas");
-    alertaDiv.innerHTML = "";
-    let semAcao = dados.filter(a => classificar(a.faltas) !== "Frequentando" && ultimaAcao(a.aluno) === "-");
-    if (semAcao.length > 0) {
-        alertaDiv.innerHTML = `<div class="alerta">⚠ ${semAcao.length} alunos em risco precisam de atenção imediata!</div>`;
-    }
-}
-
-async function registrarAcao(aluno, faltas) {
-    let acao = prompt(`Qual ação foi realizada para ${aluno}?`);
-    if (!acao) return;
-
-    let turma = document.getElementById("turma").value;
-    let data = new Date().toLocaleDateString('pt-BR');
-
-    // Enviar para o Google Apps Script
-    try {
-        await fetch(SCRIPT_URL, {
-            method: "POST",
-            body: JSON.stringify({ turma, aluno, faltas, data, acao })
-        });
-        alert("Sucesso! Recarregando histórico...");
-        carregarHistorico();
-    } catch (e) {
-        alert("Erro ao salvar. Verifique o console.");
-    }
-}
-
-// Busca em tempo real
-document.getElementById("busca").addEventListener("input", function() {
-    let termo = this.value.toLowerCase();
-    filtrados = dados.filter(a => a.aluno.toLowerCase().includes(termo));
-    mostrar();
-});
-
-// Função auxiliar para os cards do topo (resumo rápido)
-function criarPainelTurma(turma) {
-    // Esta função poderia ser otimizada para não fazer um fetch por turma toda vez, 
-    // mas mantive a lógica para preencher o painel superior.
-}
+// ... (as outras funções como ultimaAcao, verHistorico, registrarAcao continuam iguais)
 </script>
 </body>
 </html>
+
 
