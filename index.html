@@ -39,6 +39,51 @@
         
         button { cursor: pointer; background: #007bff; color: white; border: none; padding: 8px 16px; border-radius: 4px; font-size: 13px; }
         button:hover { background: #0056b3; }
+
+        /* --- CONFIGURAÇÃO DE IMPRESSÃO (PDF) --- */
+@media print {
+    /* 1. Limpa o fundo e remove sombras */
+    body { background: white; padding: 0; margin: 0; }
+    .container { box-shadow: none; border: none; width: 100%; max-width: 100%; padding: 0; margin: 0; }
+
+    /* 2. Esconde tudo o que não é relatório */
+    .cards-container,     /* Esconde os cards coloridos do topo */
+    #busca,               /* Esconde o campo de busca */
+    #loading,             /* Esconde msg de carregamento */
+    button,               /* Esconde botões de ação */
+    select,               /* Esconde o menu de seleção */
+    label {               /* Esconde o texto "Selecione a Turma" */
+        display: none !important; 
+    }
+
+    /* 3. Ajusta o Cabeçalho */
+    .top-bar { 
+        border-bottom: 2px solid #000; 
+        margin-bottom: 20px; 
+        justify-content: center; /* Centraliza o título */
+    }
+    .top-bar div:first-child { text-align: center; width: 100%; }
+    h2 { font-size: 22px; color: #000; margin: 0; }
+    small { font-size: 14px; color: #333; display: block; margin-top: 5px; }
+
+    /* 4. Formata a Tabela para papel */
+    table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    th, td { border: 1px solid #000; padding: 8px; color: #000; }
+    th { background-color: #f0f0f0 !important; font-weight: bold; }
+
+    /* 5. Garante que as cores das etiquetas saiam na impressão */
+    .status-badge, .disciplina-tag {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+        border: 1px solid #ccc; /* Borda fina para garantir leitura */
+    }
+    
+    /* Opcional: Configura a página para paisagem se a tabela for larga */
+    @page {
+        size: landscape;
+        margin: 1cm;
+    }
+}
     </style>
 </head>
 <body>
@@ -49,7 +94,8 @@
             <h2 style="margin:0;">Monitoramento de Frequência</h2>
             <small style="color:#666;">Visão consolidada por turma</small>
         </div>
-        <div>
+        <div style="display: flex; gap: 10px; align-items: center;">
+        <button onclick="window.print()" style="background: #607d8b;">🖨️ Imprimir Relatório</button>
             <label>Selecione a Turma:</label>
             <select id="selTurma">
                 <option value="">Carregando turmas...</option>
@@ -320,5 +366,6 @@ async function registrarAcao(aluno) {
 
 </body>
 </html>
+
 
 
