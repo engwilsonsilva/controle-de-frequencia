@@ -159,6 +159,7 @@ Desistentes
 <th>Aluno</th>
 <th>Faltas</th>
 <th>Situação</th>
+<th>Última ação</th>
 <th>Ação</th>
 </tr>
 </thead>
@@ -457,6 +458,7 @@ tr.innerHTML=`
 <td>${a.aluno}</td>
 <td>${a.faltas}</td>
 <td>${c}</td>
+<td>${ultimaAcao(a.aluno)}</td>
 <td>
 <button onclick="registrarAcao('${a.aluno}',${a.faltas})">
 Registrar ação
@@ -508,6 +510,7 @@ if(registros.length===0) return "-";
 return registros[0].acao;
 
 }
+  
 function ranking(){
 
 let top=[...dados]
@@ -573,3 +576,4 @@ carregarTurmas();
 
 </body>
 </html>
+
