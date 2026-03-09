@@ -2,297 +2,320 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>Controle de Frequência</title>
+    <title>Painel de Gestão de Evasão</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        body{ font-family:Arial; background:#f4f4f4; padding:20px; }
-        .container{ max-width:1100px; margin:auto; background:white; padding:20px; border-radius:8px; }
-        .chart-box{ flex: 1; min-width: 300px; height: 300px; margin: 10px; }
-        .charts-wrapper { display: flex; flex-wrap: wrap; justify-content: space-around; margin-bottom: 20px; }
-        .cards{ display:flex; gap:10px; margin-bottom:20px; flex-wrap: wrap; }
-        .card{ flex:1; min-width: 150px; background:#eee; padding:15px; border-radius:6px; text-align:center; cursor:pointer; }
-        .card h3{ margin:0; font-size:28px; }
-        .painel-grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:12px; margin-bottom:20px; }
-        .painel-turma{ padding:14px; border-radius:8px; box-shadow:0 2px 4px rgba(0,0,0,0.08); font-size:14px; }
-        .painel-verde{ background:#e6f6ea; border-left:6px solid #2e7d32; }
-        .painel-amarelo{ background:#fff8e1; border-left:6px solid #f9a825; }
-        .painel-vermelho{ background:#fdecea; border-left:6px solid #c62828; }
-        table{ width:100%; border-collapse:collapse; }
-        th,td{ padding:8px; border-bottom:1px solid #ddd; text-align: left; }
-        .alerta{ background:#ffe0e0; padding:10px; margin-bottom:10px; border-radius:6px; border: 1px solid #c62828; color: #c62828; }
-        input, select { padding: 8px; border-radius: 4px; border: 1px solid #ccc; margin-bottom: 10px; }
+        /* Estilo Limpo e Profissional */
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #eaeff2; padding: 20px; color: #333; }
+        .container { max-width: 1200px; margin: auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 5px 20px rgba(0,0,0,0.08); }
+        
+        .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; border-bottom: 2px solid #f0f0f0; padding-bottom: 15px; }
+        select { padding: 10px; font-size: 16px; border: 1px solid #ccc; border-radius: 6px; min-width: 250px; background: #fff; }
+        
+        /* Cards Indicadores */
+        .cards-container { display: flex; gap: 15px; margin-bottom: 30px; }
+        .card { flex: 1; padding: 20px; background: #fff; border-radius: 10px; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05); border-top: 4px solid #ccc; cursor: pointer; transition: 0.2s; }
+        .card:hover { transform: translateY(-3px); }
+        .card h3 { margin: 0; font-size: 32px; color: #333; }
+        .card p { margin: 5px 0 0; font-size: 13px; color: #666; text-transform: uppercase; letter-spacing: 1px; }
+
+        /* Cores dos Cards */
+        .card.ok { border-color: #2e7d32; }
+        .card.atencao { border-color: #f9a825; }
+        .card.risco { border-color: #e67e22; }
+        .card.critico { border-color: #c62828; }
+
+        /* Tabela */
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th { background: #f8f9fa; text-align: left; padding: 15px; border-bottom: 2px solid #dee2e6; color: #495057; }
+        td { padding: 15px; border-bottom: 1px solid #e9ecef; vertical-align: middle; }
+        
+        /* Badges e Etiquetas */
+        .status-badge { padding: 6px 12px; border-radius: 20px; color: white; font-weight: bold; font-size: 12px; text-transform: uppercase; }
+        .disciplina-tag { display: inline-block; background: #f1f3f5; color: #495057; padding: 4px 8px; border-radius: 4px; font-size: 11px; margin: 2px; border: 1px solid #dee2e6; }
+        .disciplina-tag.alert { background: #ffebee; color: #c62828; border-color: #ffcdd2; }
+        
+        .loading-msg { text-align: center; padding: 40px; color: #6c757d; font-style: italic; display: none; }
+        
+        button { cursor: pointer; background: #007bff; color: white; border: none; padding: 8px 16px; border-radius: 4px; font-size: 13px; }
+        button:hover { background: #0056b3; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h2>Controle de Frequência</h2>
-    <div id="alertas"></div>
-
-    <h3>Painel geral das turmas</h3>
-    <div id="painelTurmas" class="painel-grid"></div>
-
-    <hr>
-    <label>Selecione a Turma:</label>
-    <select id="turma"></select>
-
-    <div class="cards">
-        <div class="card" onclick="redefinirFiltro()"><h3>All</h3>Todos</div>
-        <div class="card" onclick="filtrar('Frequentando')"><h3 id="freq">0</h3>Frequentando</div>
-        <div class="card" onclick="filtrar('Risco')"><h3 id="risco">0</h3>Risco</div>
-        <div class="card" onclick="filtrar('Possível desistência')"><h3 id="poss">0</h3>Possível</div>
-        <div class="card" onclick="filtrar('Desistente')"><h3 id="desist">0</h3>Desistentes</div>
-    </div>
-
-    <div class="charts-wrapper">
-        <div class="chart-box">
-            <canvas id="grafico"></canvas>
+    <div class="top-bar">
+        <div>
+            <h2 style="margin:0;">Monitoramento de Frequência</h2>
+            <small style="color:#666;">Visão consolidada por turma</small>
         </div>
-        <div class="chart-box">
-            <canvas id="graficoAcoes"></canvas>
+        <div>
+            <label>Selecione a Turma:</label>
+            <select id="selTurma">
+                <option value="">Carregando turmas...</option>
+            </select>
         </div>
     </div>
 
-    <h3>Buscar aluno</h3>
-    <input id="busca" placeholder="Digite o nome do aluno..." style="width: 100%;">
+    <div id="loading" class="loading-msg">
+        ⏳ Analisando todas as disciplinas da turma, por favor aguarde...
+    </div>
 
-    <h3>Ranking de faltas (Top 10)</h3>
-    <div id="ranking"></div>
+    <div class="cards-container">
+        <div class="card ok" onclick="filtrar('OK')">
+            <h3 id="count-ok">0</h3>
+            <p>Frequentando</p>
+        </div>
+        <div class="card atencao" onclick="filtrar('Atenção')">
+            <h3 id="count-atencao">0</h3>
+            <p>Risco (26%-50%)</p>
+        </div>
+        <div class="card risco" onclick="filtrar('Risco Alto')">
+            <h3 id="count-risco">0</h3>
+            <p>Risco Alto (51%-65%)</p>
+        </div>
+        <div class="card critico" onclick="filtrar('Desistente')">
+            <h3 id="count-desistente">0</h3>
+            <p>Desistentes (>65%)</p>
+        </div>
+    </div>
 
-    <h3>Lista de alunos</h3>
+    <input type="text" id="busca" placeholder="🔍 Buscar aluno por nome..." style="width: 100%; padding: 12px; border: 1px solid #ced4da; border-radius: 6px; margin-bottom: 20px;">
+
     <table>
         <thead>
             <tr>
-                <th>#</th>
                 <th>Aluno</th>
-                <th>Faltas</th>
-                <th>Situação</th>
-                <th>Última ação</th>
+                <th>Situação Geral</th>
+                <th>Disciplinas Críticas (% Faltas)</th>
                 <th>Ações</th>
             </tr>
         </thead>
-        <tbody id="tabela"></tbody>
+        <tbody id="tabela-corpo"></tbody>
     </table>
 
-    <br>
-    <button onclick="window.print()">Imprimir Relatório</button>
 </div>
 
 <script>
-// CONFIGURAÇÕES
-const SHEET_ID = "1NBBtdsqbR4FzNyNsCuG3K3HdSRk6QzT-QR2mnjHEXJ0";
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxfr0KYW9y9jPhEdhDv3DsER3VFpoZEC3OU9lXOOceAKyjlLKXFQqNk3ff_Rt9l7rQO/exec";
-const HIST_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=Historico`;
+// --- CONFIGURAÇÃO ---
+const SHEET_ID = "1NBBtdsqbR4FzNyNsCuG3K3HdSRk6QzT-QR2mnjHEXJ0"; // Coloque seu ID aqui
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxfr0KYW9y9jPhEdhDv3DsER3VFpoZEC3OU9lXOOceAKyjlLKXFQqNk3ff_Rt9l7rQO/exec"; // Coloque seu WebApp URL
+const CONFIG_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=Config`;
 
-let historico = [];
-let dados = [];
-let filtrados = [];
-let chart, chartAcoes;
+// Variáveis Globais
+let estruturaEscola = {}; // Guarda quais matérias cada turma tem
+let dadosConsolidados = []; // Guarda a lista final de alunos
+let dadosFiltrados = [];
 
-// INÍCIO
-window.onload = () => carregarHistorico();
+// 1. Inicia carregando a configuração
+window.onload = carregarConfiguracao;
 
-function carregarHistorico() {
-    fetch(HIST_URL)
+function carregarConfiguracao() {
+    fetch(CONFIG_URL)
         .then(res => res.text())
         .then(data => {
             const json = JSON.parse(data.substring(47).slice(0, -2));
-            historico = json.table.rows.map(r => ({
-                turma: r.c[0]?.v,
-                aluno: r.c[1]?.v,
-                faltas: r.c[2]?.v,
-                data: r.c[3]?.f || r.c[3]?.v,
-                acao: r.c[4]?.v
-            })).filter(h => h.aluno);
+            const select = document.getElementById("selTurma");
+            select.innerHTML = "<option value=''>Selecione uma turma...</option>";
             
-            carregarTurmas();
-        });
-}
+            estruturaEscola = {};
 
-function carregarTurmas() {
-    fetch(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=Turmas`)
-        .then(res => res.text())
-        .then(data => {
-            const json = JSON.parse(data.substring(47).slice(0, -2));
-            const select = document.getElementById("turma");
-            select.innerHTML = "";
-            
+            // Lê a aba CONFIG: Col A (Turma), B (Disciplina), C (Aba), D (Carga Horária)
             json.table.rows.forEach(r => {
-                let turma = r.c[0].v;
+                let turma = r.c[0]?.v;
+                let disciplina = r.c[1]?.v;
+                let aba = r.c[2]?.v;
+                let carga = r.c[3]?.v; // AQUI ESTÁ A INFORMAÇÃO IMPORTANTE
+
+                if (turma && aba && carga) {
+                    if (!estruturaEscola[turma]) estruturaEscola[turma] = [];
+                    
+                    estruturaEscola[turma].push({
+                        disciplina: disciplina,
+                        aba: aba,
+                        cargaTotal: carga // Guardamos o total de aulas
+                    });
+                }
+            });
+
+            // Preenche o Menu
+            Object.keys(estruturaEscola).forEach(turma => {
                 let opt = document.createElement("option");
                 opt.value = turma;
                 opt.textContent = turma;
                 select.appendChild(opt);
             });
 
-            select.addEventListener("change", () => carregarDados(select.value));
-            carregarDados(select.value);
+            select.addEventListener("change", () => processarTurma(select.value));
         });
 }
 
-function carregarDados(turma) {
-    fetch(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(turma)}`)
-        .then(res => res.text())
-        .then(data => {
-            const json = JSON.parse(data.substring(47).slice(0, -2));
-            dados = json.table.rows.map(r => ({
-                aluno: r.c[0]?.v,
-                faltas: r.c[1]?.v || 0
-            })).filter(a => a.aluno);
+// 2. Busca dados de TODAS as matérias da turma selecionada
+async function processarTurma(turma) {
+    if (!turma) return;
+    
+    document.getElementById("loading").style.display = "block";
+    document.getElementById("tabela-corpo").innerHTML = "";
+    
+    const materias = estruturaEscola[turma];
+    let mapaAlunos = {}; // Objeto auxiliar para agrupar por nome
 
-            filtrados = [...dados];
-            mostrar();
-            graficoAcoes(turma); 
-            verificarAlertas();
+    // Faz o download de todas as abas ao mesmo tempo
+    const promessas = materias.map(mat => {
+        return fetch(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(mat.aba)}`)
+            .then(res => res.text())
+            .then(texto => {
+                const json = JSON.parse(texto.substring(47).slice(0, -2));
+                return { materiaConfig: mat, linhas: json.table.rows };
+            })
+            .catch(erro => console.error(`Erro ao ler aba ${mat.aba}`, erro));
+    });
+
+    const resultados = await Promise.all(promessas);
+
+    // 3. Processa os dados e calcula a porcentagem
+    resultados.forEach(res => {
+        if (!res) return;
+        
+        const nomeMateria = res.materiaConfig.disciplina;
+        const totalAulas = res.materiaConfig.cargaTotal; // AQUI O CÓDIGO USA O TOTAL QUE VOCÊ TEM
+
+        res.linhas.forEach(linha => {
+            let nomeAluno = linha.c[0]?.v;
+            let numFaltas = linha.c[1]?.v || 0;
+
+            if (nomeAluno) {
+                // Inicializa o aluno se não existir
+                if (!mapaAlunos[nomeAluno]) {
+                    mapaAlunos[nomeAluno] = {
+                        nome: nomeAluno,
+                        statusGeral: "OK",
+                        prioridade: 0, // Quanto maior, mais grave
+                        detalhes: []
+                    };
+                }
+
+                // CÁLCULO DA PORCENTAGEM
+                let porcentagem = (numFaltas / totalAulas) * 100;
+                let statusMateria = "OK";
+
+                if (porcentagem > 65) statusMateria = "Desistente";
+                else if (porcentagem > 50) statusMateria = "Risco Alto";
+                else if (porcentagem > 25) statusMateria = "Atenção";
+
+                // Se não estiver OK, adiciona aos detalhes
+                if (statusMateria !== "OK") {
+                    mapaAlunos[nomeAluno].detalhes.push({
+                        mat: nomeMateria,
+                        perc: porcentagem.toFixed(1) + "%", // Ex: "25.5%"
+                        status: statusMateria
+                    });
+
+                    // Define a gravidade geral do aluno (pega sempre o pior caso)
+                    let peso = 0;
+                    if (statusMateria === "Atenção") peso = 1;
+                    if (statusMateria === "Risco Alto") peso = 2;
+                    if (statusMateria === "Desistente") peso = 3;
+
+                    if (peso > mapaAlunos[nomeAluno].prioridade) {
+                        mapaAlunos[nomeAluno].prioridade = peso;
+                        mapaAlunos[nomeAluno].statusGeral = statusMateria;
+                    }
+                }
+            }
         });
+    });
+
+    // Converte o mapa em lista e ordena pelos mais críticos
+    dadosConsolidados = Object.values(mapaAlunos).sort((a,b) => b.prioridade - a.prioridade);
+    dadosFiltrados = [...dadosConsolidados];
+
+    document.getElementById("loading").style.display = "none";
+    mostrarTabela();
 }
 
-function classificar(f) {
-    if (f <= 14) return "Frequentando";
-    if (f <= 30) return "Risco";
-    if (f <= 41) return "Possível desistência";
-    return "Desistente";
-}
+function mostrarTabela() {
+    const tbody = document.getElementById("tabela-corpo");
+    tbody.innerHTML = "";
 
-function mostrar() {
-    let cont = { "Frequentando": 0, "Risco": 0, "Possível desistência": 0, "Desistente": 0 };
-    const tabela = document.getElementById("tabela");
-    tabela.innerHTML = "";
+    let contadores = { "OK": 0, "Atenção": 0, "Risco Alto": 0, "Desistente": 0 };
 
-    const cores = {
-        "Frequentando": "#2e7d32",
-        "Risco": "#f9a825",
-        "Possível desistência": "#e67e22",
-        "Desistente": "#c62828"
-    };
+    dadosFiltrados.forEach(aluno => {
+        // Conta para os cards
+        contadores[aluno.statusGeral === "OK" ? "OK" : aluno.statusGeral]++;
 
-    filtrados.forEach((a, i) => {
-        let sit = classificar(a.faltas);
-        cont[sit]++;
-        let corTexto = cores[sit] || "#000";
+        // Cria as etiquetas das matérias
+        let htmlMaterias = "";
+        if (aluno.detalhes.length > 0) {
+            aluno.detalhes.forEach(det => {
+                let classeAlerta = (det.status === "Desistente" || det.status === "Risco Alto") ? "alert" : "";
+                htmlMaterias += `<span class="disciplina-tag ${classeAlerta}"><b>${det.mat}</b>: ${det.perc}</span>`;
+            });
+        } else {
+            htmlMaterias = "<span style='color:#bbb; font-size:12px;'>—</span>";
+        }
+
+        // Cor do Status Geral
+        let cores = { "OK": "#2e7d32", "Atenção": "#f9a825", "Risco Alto": "#e67e22", "Desistente": "#c62828" };
+        let corBadge = cores[aluno.statusGeral] || "#333";
 
         let tr = document.createElement("tr");
         tr.innerHTML = `
-            <td>${i + 1}</td>
-            <td>${a.aluno}</td>
-            <td>${a.faltas}</td>
-            <td style="color: ${corTexto}; font-weight: bold;">${sit}</td>
-            <td>${ultimaAcao(a.aluno)}</td>
-            <td>
-                <button onclick="registrarAcao('${a.aluno}',${a.faltas})">Registrar</button>
-                <button onclick="verHistorico('${a.aluno}')">Ver</button>
-            </td>
+            <td><b>${aluno.nome}</b></td>
+            <td><span class="status-badge" style="background:${corBadge}">${aluno.statusGeral}</span></td>
+            <td>${htmlMaterias}</td>
+            <td><button onclick="registrarAcao('${aluno.nome}')">Registrar Ação</button></td>
         `;
-        tabela.appendChild(tr);
+        tbody.appendChild(tr);
     });
 
-    document.getElementById("freq").innerText = cont["Frequentando"];
-    document.getElementById("risco").innerText = cont["Risco"];
-    document.getElementById("poss").innerText = cont["Possível desistência"];
-    document.getElementById("desist").innerText = cont["Desistente"];
-
-    atualizarGraficoGeral(cont);
-    ranking();
+    // Atualiza os números nos cards
+    document.getElementById("count-ok").innerText = contadores["OK"];
+    document.getElementById("count-atencao").innerText = contadores["Atenção"];
+    document.getElementById("count-risco").innerText = contadores["Risco Alto"];
+    document.getElementById("count-desistente").innerText = contadores["Desistente"];
 }
 
-function atualizarGraficoGeral(cont) {
-    if (chart) chart.destroy();
-    chart = new Chart(document.getElementById("grafico"), {
-        type: "pie",
-        data: {
-            labels: Object.keys(cont),
-            datasets: [{ 
-                data: Object.values(cont), 
-                backgroundColor: ['#2e7d32', '#f9a825', '#e67e22', '#c62828'] 
-            }]
-        },
-        options: { responsive: true, maintainAspectRatio: false }
-    });
-}
-
-function graficoAcoes(turmaSelecionada) {
-    let contagem = {};
-    let historicoDaTurma = historico.filter(h => h.turma === turmaSelecionada);
-
-    historicoDaTurma.forEach(h => {
-        contagem[h.acao] = (contagem[h.acao] || 0) + 1;
-    });
-    
-    if (chartAcoes) chartAcoes.destroy();
-    chartAcoes = new Chart(document.getElementById("graficoAcoes"), {
-        type: "bar",
-        data: {
-            labels: Object.keys(contagem),
-            datasets: [{ 
-                label: `Ações: ${turmaSelecionada}`, 
-                data: Object.values(contagem), 
-                backgroundColor: '#3498db' 
-            }]
-        },
-        options: { responsive: true, maintainAspectRatio: false }
-    });
-}
-
-function ultimaAcao(aluno) {
-    let reg = historico.filter(h => h.aluno === aluno);
-    return reg.length > 0 ? reg[reg.length - 1].acao : "-";
-}
-
-function verHistorico(aluno) {
-    let registros = historico.filter(h => h.aluno === aluno);
-    if (registros.length === 0) return alert("Sem histórico para este aluno.");
-    let texto = registros.map(r => `${r.data}: ${r.acao}`).join("\n");
-    alert(`Histórico de ${aluno}:\n\n${texto}`);
-}
-
-function ranking() {
-    let top = [...dados].sort((a, b) => b.faltas - a.faltas).slice(0, 10);
-    document.getElementById("ranking").innerHTML = "<ol>" + top.map(a => `<li>${a.aluno} — ${a.faltas} faltas</li>`).join("") + "</ol>";
-}
-
+// Filtros
 function filtrar(tipo) {
-    filtrados = dados.filter(a => classificar(a.faltas) === tipo);
-    mostrar();
-}
-
-function redefinirFiltro() {
-    filtrados = [...dados];
-    mostrar();
-}
-
-function verificarAlertas() {
-    const alertaDiv = document.getElementById("alertas");
-    alertaDiv.innerHTML = "";
-    let semAcao = dados.filter(a => classificar(a.faltas) !== "Frequentando" && ultimaAcao(a.aluno) === "-");
-    if (semAcao.length > 0) {
-        alertaDiv.innerHTML = `<div class="alerta">⚠ ${semAcao.length} alunos em risco sem ação registrada nesta turma.</div>`;
+    if(tipo === 'OK') {
+        dadosFiltrados = dadosConsolidados.filter(a => a.statusGeral === 'OK');
+    } else {
+        dadosFiltrados = dadosConsolidados.filter(a => a.statusGeral === tipo);
     }
+    mostrarTabela();
 }
 
-async function registrarAcao(aluno, faltas) {
-    let acao = prompt(`Qual ação realizada para ${aluno}?`);
+// Busca por nome
+document.getElementById("busca").addEventListener("input", function() {
+    let termo = this.value.toLowerCase();
+    dadosFiltrados = dadosConsolidados.filter(a => a.nome.toLowerCase().includes(termo));
+    mostrarTabela();
+});
+
+// Registrar Ação (Envia para o Google Sheets)
+async function registrarAcao(aluno) {
+    let acao = prompt(`Qual intervenção foi feita para ${aluno}?`);
     if (!acao) return;
 
-    let turma = document.getElementById("turma").value;
-    let data = new Date().toLocaleDateString('pt-BR');
+    let turmaAtual = document.getElementById("selTurma").value;
 
     try {
         await fetch(SCRIPT_URL, {
             method: "POST",
-            body: JSON.stringify({ turma, aluno, faltas, data, acao })
+            body: JSON.stringify({
+                turma: turmaAtual, // Salva na turma geral
+                aluno: aluno,
+                faltas: "Geral", // Como é uma ação global, não vinculamos a uma falta específica
+                data: new Date().toLocaleDateString('pt-BR'),
+                acao: acao
+            })
         });
-        alert("Ação registrada com sucesso!");
-        carregarHistorico(); 
+        alert("Ação registrada no Histórico!");
     } catch (e) {
-        alert("Erro ao salvar no Google Sheets.");
+        alert("Erro ao salvar.");
     }
 }
-
-document.getElementById("busca").addEventListener("input", function() {
-    let termo = this.value.toLowerCase();
-    filtrados = dados.filter(a => a.aluno.toLowerCase().includes(termo));
-    mostrar();
-});
 </script>
 
 </body>
