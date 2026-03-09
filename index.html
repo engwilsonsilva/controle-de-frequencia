@@ -19,7 +19,7 @@
         .card h3 { margin: 0; font-size: 28px; }
         .card p { margin: 5px 0 0; font-size: 12px; text-transform: uppercase; color: #666; }
         
-        /* Cores (Mantidas) */
+        /* Cores */
         .ok { border-color: #2e7d32; color: #2e7d32; }
         .atencao { border-color: #f9a825; color: #f9a825; }
         .risco { border-color: #e67e22; color: #e67e22; }
@@ -31,7 +31,7 @@
         td { padding: 10px; border-bottom: 1px solid #eee; vertical-align: middle; }
         .badge { padding: 5px 10px; border-radius: 15px; color: white; font-weight: bold; font-size: 11px; text-transform: uppercase; }
         
-        /* Etiquetas das Disciplinas (Mantidas) */
+        /* Etiquetas das Disciplinas */
         .tag-materia { display: inline-block; background: #f1f3f5; color: #495057; padding: 3px 6px; border-radius: 4px; font-size: 11px; margin: 2px; border: 1px solid #dee2e6; }
         .tag-materia.alert { background: #ffebee; color: #c62828; border-color: #ffcdd2; font-weight: bold; }
 
@@ -40,7 +40,6 @@
         .btn-hist { background: #607d8b; }
         .btn-acao { background: #2196F3; }
         .btn-print { background: #555; padding: 10px 20px; font-size: 14px; }
-        /* Botão Novo (Roxo) */
         .btn-import { background: #9c27b0; padding: 10px 20px; font-size: 14px; margin-right: 10px; }
         button:hover { opacity: 0.9; }
 
@@ -54,7 +53,7 @@
         .hist-data { font-size: 12px; font-weight: bold; color: #666; display: block; margin-bottom: 4px; }
         .hist-texto { font-size: 14px; color: #333; line-height: 1.4; }
 
-        /* --- ESTILOS NOVOS DA IMPORTAÇÃO (APENAS PARA A JANELA NOVA) --- */
+        /* Estilos da Importação */
         textarea { width: 100%; height: 100px; padding: 10px; border: 1px solid #ccc; border-radius: 5px; margin-top: 10px; font-family: monospace; font-size: 11px; white-space: pre; overflow: scroll; box-sizing: border-box; }
         .config-colunas { display: flex; gap: 10px; margin-top: 10px; background: #f9f9f9; padding: 10px; border-radius: 5px; border: 1px solid #eee; }
         .config-colunas div { flex: 1; }
@@ -111,7 +110,7 @@
             <tr>
                 <th>Aluno</th>
                 <th>Situação Geral</th>
-                <th>Disciplinas Críticas</th> <th>Última Ação</th>
+                <th>Disciplinas Críticas (Faltas | %)</th> <th>Última Ação</th>
                 <th>Ações</th>
             </tr>
         </thead>
@@ -133,32 +132,18 @@
     <div class="modal-content">
         <span class="close-btn" onclick="fecharModal('modalImport')">&times;</span>
         <h3>Importar Frequência</h3>
-        
         <label><b>1. Para qual matéria?</b></label>
         <select id="selImportMateria" style="width:100%; margin: 5px 0 10px; padding: 8px;"></select>
-        
         <label><b>2. Cole os dados copiados aqui:</b></label>
         <textarea id="txtImport" placeholder="Cole aqui a tabela inteira do sistema..." oninput="atualizarPrevia()"></textarea>
-
         <div class="config-colunas">
-            <div>
-                <label>Coluna do Nome (Nº)</label>
-                <input type="number" id="colNome" value="2" min="1" onchange="atualizarPrevia()">
-            </div>
-            <div>
-                <label>Coluna de Faltas (Nº)</label>
-                <input type="number" id="colFaltas" value="5" min="1" onchange="atualizarPrevia()">
-            </div>
+            <div><label>Coluna do Nome (Nº)</label><input type="number" id="colNome" value="2" min="1" onchange="atualizarPrevia()"></div>
+            <div><label>Coluna de Faltas (Nº)</label><input type="number" id="colFaltas" value="5" min="1" onchange="atualizarPrevia()"></div>
         </div>
-
         <div class="previa-box">
-            <div class="previa-titulo">👁️ Pré-visualização (Verifique se está correto):</div>
-            <table class="tabela-previa">
-                <thead><tr><th>Nome Detectado</th><th>Faltas</th></tr></thead>
-                <tbody id="tbodyPrevia"><tr><td colspan="2" style="text-align:center; color:#999;">Cole os dados para ver a prévia...</td></tr></tbody>
-            </table>
+            <div class="previa-titulo">👁️ Pré-visualização:</div>
+            <table class="tabela-previa"><thead><tr><th>Nome</th><th>Faltas</th></tr></thead><tbody id="tbodyPrevia"><tr><td colspan="2" style="text-align:center;">Aguardando...</td></tr></tbody></table>
         </div>
-        
         <button onclick="executarImportacao()" style="background:#9c27b0; width:100%; padding:12px; margin-top:15px; font-size:16px; color: white; border: none; border-radius: 5px; cursor: pointer;">💾 Salvar Dados na Planilha</button>
     </div>
 </div>
@@ -197,7 +182,6 @@ function carregarConfig() {
         const json = JSON.parse(data.substring(47).slice(0, -2));
         const select = document.getElementById("selTurma");
         const selectImport = document.getElementById("selImportMateria");
-        
         select.innerHTML = "<option value=''>Selecione a turma...</option>";
         selectImport.innerHTML = "<option value=''>Selecione a matéria...</option>";
         estruturaEscola = {};
@@ -269,7 +253,13 @@ async function processarTurma(turma) {
                 else if (perc > 25) statusMat = "Atenção";
 
                 if (statusMat !== "OK") {
-                    mapaAlunos[nome].detalhes.push({ disciplina: nomeDisciplina, perc: perc.toFixed(0) + "%", status: statusMat });
+                    // --- MUDANÇA AQUI: Adicionando as faltas brutas ---
+                    mapaAlunos[nome].detalhes.push({ 
+                        disciplina: nomeDisciplina, 
+                        perc: perc.toFixed(0) + "%", 
+                        faltas: faltas, // Guardando o número de faltas
+                        status: statusMat 
+                    });
                 }
 
                 let peso = statusMat === "OK" ? 0 : (statusMat === "Atenção" ? 1 : (statusMat === "Risco Alto" ? 2 : 3));
@@ -299,7 +289,9 @@ function mostrarTabela() {
         if (aluno.detalhes.length > 0) {
             aluno.detalhes.forEach(d => {
                 let classeExtra = (d.status === "Desistente" || d.status === "Risco Alto") ? "alert" : "";
-                htmlDisciplinas += `<span class="tag-materia ${classeExtra}">${d.disciplina}: ${d.perc}</span>`;
+                // --- MUDANÇA AQUI: Mostrando Faltas e Porcentagem ---
+                // Exemplo: Matemática: 20 (25%)
+                htmlDisciplinas += `<span class="tag-materia ${classeExtra}">${d.disciplina}: ${d.faltas} (${d.perc})</span>`;
             });
         } else {
             htmlDisciplinas = "<span style='color:#ccc; font-size:11px'>—</span>";
@@ -327,7 +319,7 @@ function mostrarTabela() {
     document.getElementById("c-critico").innerText = cont["Desistente"];
 }
 
-// --- FUNÇÕES DE IMPORTAÇÃO INTELIGENTE ---
+// --- OUTRAS FUNÇÕES (Importar, Histórico, etc) ---
 function abrirImportacao() { document.getElementById("modalImport").style.display = "flex"; }
 
 function atualizarPrevia() {
@@ -335,30 +327,22 @@ function atualizarPrevia() {
     let colNome = parseInt(document.getElementById("colNome").value) - 1; 
     let colFaltas = parseInt(document.getElementById("colFaltas").value) - 1;
     let tbody = document.getElementById("tbodyPrevia");
-    
     dadosProntosParaSalvar = [];
     tbody.innerHTML = "";
     
-    if(!texto) {
-        tbody.innerHTML = "<tr><td colspan='2' style='text-align:center; color:#999;'>Aguardando dados...</td></tr>";
-        return;
-    }
+    if(!texto) { tbody.innerHTML = "<tr><td colspan='2' style='text-align:center; color:#999;'>Aguardando dados...</td></tr>"; return; }
 
     let linhas = texto.trim().split("\n");
     let qtdMostrada = 0;
-
     linhas.forEach(linha => {
         let colunas = linha.split("\t");
         if(colunas[colNome] !== undefined && colunas[colFaltas] !== undefined) {
             let nome = colunas[colNome].trim();
             let faltas = colunas[colFaltas].trim();
-            
             if(nome.length > 2) {
                 let numeroFaltas = faltas.replace(/\D/g, "");
                 if(numeroFaltas === "") numeroFaltas = "0";
-
                 dadosProntosParaSalvar.push([nome, numeroFaltas]);
-
                 if(qtdMostrada < 5) {
                     tbody.innerHTML += `<tr><td>${nome}</td><td>${numeroFaltas}</td></tr>`;
                     qtdMostrada++;
@@ -366,40 +350,27 @@ function atualizarPrevia() {
             }
         }
     });
-
-    if(dadosProntosParaSalvar.length === 0) {
-        tbody.innerHTML = "<tr><td colspan='2' style='text-align:center; color:red;'>Nenhum dado encontrado nessas colunas. Tente mudar os números acima.</td></tr>";
-    }
+    if(dadosProntosParaSalvar.length === 0) tbody.innerHTML = "<tr><td colspan='2' style='text-align:center; color:red;'>Nenhum dado detectado. Ajuste as colunas.</td></tr>";
 }
 
 async function executarImportacao() {
     let aba = document.getElementById("selImportMateria").value;
-    
-    if(!aba) return alert("Selecione a matéria primeiro!");
-    if(dadosProntosParaSalvar.length === 0) return alert("A prévia está vazia. Verifique as colunas.");
-
-    if(!confirm(`Confirma a importação de ${dadosProntosParaSalvar.length} alunos? Isso substituirá a lista atual desta matéria.`)) return;
-
+    if(!aba) return alert("Selecione a matéria!");
+    if(dadosProntosParaSalvar.length === 0) return alert("Prévia vazia.");
+    if(!confirm(`Confirma importação de ${dadosProntosParaSalvar.length} alunos?`)) return;
     try {
         await fetch(SCRIPT_URL, {
             method: "POST",
-            body: JSON.stringify({
-                tipo: "IMPORTAR",
-                abaDestino: aba,
-                lista: dadosProntosParaSalvar
-            })
+            body: JSON.stringify({ tipo: "IMPORTAR", abaDestino: aba, lista: dadosProntosParaSalvar })
         });
-        alert("Importação realizada com sucesso!");
+        alert("Sucesso!");
         document.getElementById("txtImport").value = "";
         document.getElementById("tbodyPrevia").innerHTML = "";
         fecharModal('modalImport');
         carregarTudo(); 
-    } catch(e) {
-        alert("Erro ao enviar dados.");
-    }
+    } catch(e) { alert("Erro ao enviar."); }
 }
 
-// --- FUNÇÕES DE HISTÓRICO E AÇÃO ---
 function obterUltimaAcao(nome) {
     let acoes = historicoGlobal.filter(h => h.aluno === nome);
     if (acoes.length === 0) return "<span style='color:#ccc; font-size:11px'>Sem registro</span>";
@@ -415,7 +386,7 @@ function verHistorico(nome) {
     else acoes.forEach(a => lista.innerHTML += `<div class="hist-item"><span class="hist-data">📅 ${a.data}</span><div class="hist-texto">${a.acao}</div></div>`);
 }
 async function registrarAcao(nome) {
-    let acao = prompt(`Registre a ação realizada com ${nome}:`);
+    let acao = prompt(`Registre a ação para ${nome}:`);
     if (!acao) return;
     let turma = document.getElementById("selTurma").value;
     try {
@@ -441,4 +412,3 @@ document.getElementById("busca").addEventListener("input", function() {
 </script>
 </body>
 </html>
-
