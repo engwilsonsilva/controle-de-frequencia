@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <title>Monitoramento de Evasão</title>
     <style>
-        /* --- ESTILOS VISUAIS (MANTIDOS) --- */
+        /* --- ESTILOS VISUAIS (MANTIDOS 100%) --- */
         body { font-family: 'Segoe UI', Tahoma, sans-serif; background: #f0f2f5; padding: 20px; color: #333; }
         .container { max-width: 1250px; margin: auto; background: white; padding: 25px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
         .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 2px solid #eee; padding-bottom: 15px; }
@@ -221,7 +221,6 @@ async function processarTurma(turma) {
             .then(res => res.text()).then(txt => {
                 try { 
                     const rawData = JSON.parse(txt.substring(47).slice(0,-2)).table.rows;
-                    // --- AJUSTE AQUI: Remove a primeira linha (cabeçalho) ---
                     return { mat, linhas: rawData.slice(1) }; 
                 } catch(e) { return { mat, linhas: [] }; }
             });
@@ -312,32 +311,40 @@ async function salvarAcaoPadronizada() {
 }
 
 function abrirImportacao() { document.getElementById("modalImport").style.display = "flex"; }
+
+// CORREÇÃO: Limpeza mais robusta na prévia para não pular a última linha
 function atualizarPrevia() {
-    let t = document.getElementById("txtImport").value, n = parseInt(document.getElementById("colNome").value)-1, f = parseInt(document.getElementById("colFaltas").value)-1, b = document.getElementById("tbodyPrevia");
+    let t = document.getElementById("txtImport").value.trim(), n = parseInt(document.getElementById("colNome").value)-1, f = parseInt(document.getElementById("colFaltas").value)-1, b = document.getElementById("tbodyPrevia");
     dadosProntosParaSalvar = []; b.innerHTML = "";
     if(!t) { b.innerHTML = "<tr><td colspan='2' style='text-align:center;'>Aguardando...</td></tr>"; return; }
-    t.trim().split("\n").forEach(l => {
+    
+    t.split("\n").forEach(l => {
         let c = l.split("\t");
-        if(c[n] && c[f]) {
-            let nm = c[n].trim(), fl = c[f].trim().replace(/\D/g,"") || "0";
-            if(nm.length > 2) {
+        if(c.length > Math.max(n, f)) {
+            let nm = c[n]?.trim(), fl = c[f]?.trim().replace(/\D/g,"") || "0";
+            if(nm && nm.length > 1) {
                 dadosProntosParaSalvar.push([nm, fl]);
                 if(dadosProntosParaSalvar.length <= 5) b.innerHTML += `<tr><td>${nm}</td><td>${fl}</td></tr>`;
             }
         }
     });
+    if(dadosProntosParaSalvar.length === 0) b.innerHTML = "<tr><td colspan='2' style='text-align:center; color:red;'>Dados não detectados.</td></tr>";
 }
+
 async function executarImportacao() {
     let a = document.getElementById("selImportMateria").value;
     if(!a || !dadosProntosParaSalvar.length) return alert("Selecione a matéria/dados.");
     if(!confirm(`Importar ${dadosProntosParaSalvar.length} alunos?`)) return;
     let inf = listaMateriasSimples.find(m => m.aba === a);
+    
     try {
         await Promise.all([
             fetch(SCRIPT_URL, { method: "POST", body: JSON.stringify({ tipo: "IMPORTAR", abaDestino: a, lista: dadosProntosParaSalvar }) }),
             fetch(SCRIPT_URL, { method: "POST", body: JSON.stringify({ turma: inf.turma, aluno: "[SISTEMA]", faltas: "-", data: new Date().toLocaleDateString('pt-BR'), acao: "Importação: " + inf.nome }) })
         ]);
-        alert("Sucesso!"); fecharModal('modalImport'); carregarTudo(); 
+        alert(`Sucesso! ${dadosProntosParaSalvar.length} alunos importados.`); 
+        fecharModal('modalImport'); 
+        carregarTudo(); 
     } catch(e) { alert("Erro."); }
 }
 
