@@ -4,38 +4,32 @@
     <meta charset="UTF-8">
     <title>Monitoramento de Evasão</title>
     <style>
-        /* --- ESTILOS VISUAIS (IDÊNTICOS AO ANTERIOR) --- */
+        /* --- ESTILOS VISUAIS (IDÊNTICOS) --- */
         body { font-family: 'Segoe UI', Tahoma, sans-serif; background: #f0f2f5; padding: 20px; color: #333; }
         .container { max-width: 1250px; margin: auto; background: white; padding: 25px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
         
-        /* Cabeçalho */
         .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 2px solid #eee; padding-bottom: 15px; }
         h2 { margin: 0; color: #2c3e50; }
         select { padding: 10px; font-size: 14px; border-radius: 5px; min-width: 200px; border: 1px solid #ccc; }
         
-        /* Cards */
         .cards { display: flex; gap: 15px; margin-bottom: 25px; }
         .card { flex: 1; padding: 15px; text-align: center; border-radius: 8px; background: #fff; border: 1px solid #ddd; border-top: 4px solid #ccc; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
         .card h3 { margin: 0; font-size: 28px; }
         .card p { margin: 5px 0 0; font-size: 12px; text-transform: uppercase; color: #666; }
         
-        /* Cores */
         .ok { border-color: #2e7d32; color: #2e7d32; }
         .atencao { border-color: #f9a825; color: #f9a825; }
         .risco { border-color: #e67e22; color: #e67e22; }
         .critico { border-color: #c62828; color: #c62828; }
         
-        /* Tabela */
         table { width: 100%; border-collapse: collapse; margin-top: 10px; }
         th { background: #f8f9fa; text-align: left; padding: 12px; border-bottom: 2px solid #ddd; color: #555; }
         td { padding: 10px; border-bottom: 1px solid #eee; vertical-align: middle; }
         .badge { padding: 5px 10px; border-radius: 15px; color: white; font-weight: bold; font-size: 11px; text-transform: uppercase; }
         
-        /* Etiquetas das Disciplinas */
         .tag-materia { display: inline-block; background: #f1f3f5; color: #495057; padding: 3px 6px; border-radius: 4px; font-size: 11px; margin: 2px; border: 1px solid #dee2e6; }
         .tag-materia.alert { background: #ffebee; color: #c62828; border-color: #ffcdd2; font-weight: bold; }
 
-        /* Botões */
         button { cursor: pointer; border: none; padding: 8px 12px; border-radius: 4px; font-size: 12px; color: white; transition: 0.2s; margin-right: 5px; }
         .btn-hist { background: #607d8b; }
         .btn-acao { background: #2196F3; }
@@ -53,23 +47,29 @@
         .hist-data { font-size: 12px; font-weight: bold; color: #666; display: block; margin-bottom: 4px; }
         .hist-texto { font-size: 14px; color: #333; line-height: 1.4; }
 
-        /* Estilos da Importação */
-        textarea { width: 100%; height: 100px; padding: 10px; border: 1px solid #ccc; border-radius: 5px; margin-top: 10px; font-family: monospace; font-size: 11px; white-space: pre; overflow: scroll; box-sizing: border-box; }
+        /* Estilos da Importação e Ação */
+        textarea { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px; margin-top: 10px; box-sizing: border-box; }
+        #txtImport { height: 100px; font-family: monospace; font-size: 11px; white-space: pre; overflow: scroll; }
+        #txtDetalheAcao { height: 80px; font-family: inherit; font-size: 14px; resize: none; }
+        
         .config-colunas { display: flex; gap: 10px; margin-top: 10px; background: #f9f9f9; padding: 10px; border-radius: 5px; border: 1px solid #eee; }
         .config-colunas div { flex: 1; }
-        .config-colunas label { display: block; font-size: 12px; font-weight: bold; margin-bottom: 5px; color: #555; }
+        .config-colunas label, .campo-label { display: block; font-size: 12px; font-weight: bold; margin-bottom: 5px; color: #555; }
         .config-colunas input { width: 100%; padding: 5px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
         .previa-box { margin-top: 15px; border: 1px solid #eee; border-radius: 5px; padding: 10px; background: #fff; }
         .previa-titulo { font-size: 12px; font-weight: bold; color: #9c27b0; margin-bottom: 5px; }
         .tabela-previa { width: 100%; font-size: 11px; border-collapse: collapse; }
         .tabela-previa th, .tabela-previa td { border: 1px solid #ddd; padding: 4px; text-align: left; }
         .tabela-previa th { background: #f0f0f0; }
+        
+        /* NOVO: Data de Atualização */
+        .info-atualizacao { font-size: 12px; font-weight: bold; margin-top: 5px; display: inline-block; padding: 3px 8px; border-radius: 4px; background: #f1f3f5; }
 
         /* IMPRESSÃO LIMPA */
         @media print {
             body { background: white; padding: 0; margin: 0; }
             .container { box-shadow: none; border: none; width: 100%; max-width: 100%; padding: 0; }
-            .cards, .top-bar button, select, label, input, .btn-acao, .btn-hist, .btn-import { display: none !important; }
+            .cards, .top-bar button, select, label, input, .btn-acao, .btn-hist, .btn-import, .info-atualizacao { display: none !important; }
             .top-bar { justify-content: center; border-bottom: 2px solid #000; }
             h2 { font-size: 18px; color: #000; }
             table { font-size: 10px; width: 100%; }
@@ -87,7 +87,8 @@
     <div class="top-bar">
         <div>
             <h2>Painel de Gestão de Evasão</h2>
-            <small id="subtitulo">Selecione uma turma para começar</small>
+            <small id="subtitulo">Selecione uma turma para começar</small><br>
+            <div id="dataAtualizacao" class="info-atualizacao" style="display:none;"></div>
         </div>
         <div style="display:flex; gap:10px; align-items:center;">
             <button onclick="abrirImportacao()" class="btn-import">📤 Importar Dados</button>
@@ -110,7 +111,8 @@
             <tr>
                 <th>Aluno</th>
                 <th>Situação Geral</th>
-                <th>Disciplinas Críticas (Faltas | %)</th> <th>Última Ação</th>
+                <th>Disciplinas Críticas (Faltas | %)</th>
+                <th>Última Ação</th>
                 <th>Ações</th>
             </tr>
         </thead>
@@ -125,6 +127,29 @@
         <span class="close-btn" onclick="fecharModal('modalHist')">&times;</span>
         <h3 id="modalTitulo">Histórico</h3>
         <div id="modalLista" class="hist-lista">Carregando...</div>
+    </div>
+</div>
+
+<div id="modalAcao" class="modal-overlay">
+    <div class="modal-content" style="max-width: 450px;">
+        <span class="close-btn" onclick="fecharModal('modalAcao')">&times;</span>
+        <h3>Registrar Ação</h3>
+        <p id="acaoNomeAluno" style="font-weight:bold; color: #2196F3; font-size: 16px; margin-bottom: 15px;"></p>
+        
+        <label class="campo-label">Tipo de Contato:</label>
+        <select id="selTipoAcao" style="width:100%; padding:10px; margin-bottom: 15px;">
+            <option value="📞 Ligação Telefônica">📞 Ligação Telefônica</option>
+            <option value="📱 Mensagem WhatsApp">📱 Mensagem WhatsApp</option>
+            <option value="🤝 Reunião Presencial">🤝 Reunião Presencial</option>
+            <option value="🏠 Visita Domiciliar">🏠 Visita Domiciliar</option>
+            <option value="⚠️ Conselho Tutelar">⚠️ Encaminhado ao Conselho Tutelar</option>
+            <option value="📝 Outro">📝 Outro</option>
+        </select>
+        
+        <label class="campo-label">Detalhes / Retorno do Aluno ou Responsável:</label>
+        <textarea id="txtDetalheAcao" placeholder="Ex: O responsável informou que o aluno irá entregar atestado amanhã..."></textarea>
+        
+        <button onclick="salvarAcaoPadronizada()" style="background:#2196F3; width:100%; padding:12px; margin-top:15px; font-size:16px; color: white; border: none; border-radius: 5px; cursor: pointer;">💾 Salvar Histórico</button>
     </div>
 </div>
 
@@ -157,22 +182,31 @@ const CONFIG_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?t
 const HIST_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=Historico`;
 
 let historicoGlobal = [];
+let historicoSistema = []; // NOVO: Guarda apenas os registos de importação
 let estruturaEscola = {}; 
 let listaMateriasSimples = []; 
 let dadosConsolidados = [];
 let dadosFiltrados = [];
 let dadosProntosParaSalvar = [];
+let alunoAcaoPendente = ""; // NOVO: Guarda o nome do aluno que vai receber a ação
 
 window.onload = carregarTudo;
 
 function carregarTudo() {
     fetch(`${HIST_URL}&t=${Date.now()}`).then(res => res.text()).then(data => {
         const json = JSON.parse(data.substring(47).slice(0, -2));
-        historicoGlobal = json.table.rows.map(r => ({
+        
+        let historicoGeral = json.table.rows.map(r => ({
+            turma: r.c[0]?.v,
             aluno: r.c[1]?.v,
             data: r.c[3]?.f || r.c[3]?.v,
             acao: r.c[4]?.v
         })).filter(h => h.aluno);
+
+        // Separa as ações dos alunos das ações ocultas do sistema
+        historicoGlobal = historicoGeral.filter(h => h.aluno !== "[SISTEMA]");
+        historicoSistema = historicoGeral.filter(h => h.aluno === "[SISTEMA]");
+        
         carregarConfig();
     });
 }
@@ -195,7 +229,7 @@ function carregarConfig() {
             if (turma && aba && carga) {
                 if (!estruturaEscola[turma]) estruturaEscola[turma] = [];
                 estruturaEscola[turma].push({ disciplina, aba, cargaTotal: carga });
-                listaMateriasSimples.push({ nome: `${turma} - ${disciplina}`, aba: aba });
+                listaMateriasSimples.push({ nome: `${turma} - ${disciplina}`, aba: aba, turma: turma });
             }
         });
 
@@ -215,11 +249,16 @@ function carregarConfig() {
 }
 
 async function processarTurma(turma) {
-    if (!turma) return;
+    if (!turma) {
+        document.getElementById("dataAtualizacao").style.display = "none";
+        return;
+    }
     document.getElementById("loading").style.display = "block";
     document.getElementById("tabela-corpo").innerHTML = "";
-    document.getElementById("subtitulo").innerText = "Analisando turma " + turma + "...";
+    document.getElementById("subtitulo").innerText = "A analisar a turma " + turma + "...";
     
+    verificarDataImportacao(turma); // NOVO: Analisa a data dos dados
+
     let mapaAlunos = {};
     let materias = estruturaEscola[turma];
 
@@ -253,11 +292,10 @@ async function processarTurma(turma) {
                 else if (perc > 25) statusMat = "Atenção";
 
                 if (statusMat !== "OK") {
-                    // --- MUDANÇA AQUI: Adicionando as faltas brutas ---
                     mapaAlunos[nome].detalhes.push({ 
                         disciplina: nomeDisciplina, 
                         perc: perc.toFixed(0) + "%", 
-                        faltas: faltas, // Guardando o número de faltas
+                        faltas: faltas, 
                         status: statusMat 
                     });
                 }
@@ -277,6 +315,44 @@ async function processarTurma(turma) {
     mostrarTabela();
 }
 
+// NOVO: Verifica se os dados estão velhos (> 7 dias)
+function verificarDataImportacao(turma) {
+    let divData = document.getElementById("dataAtualizacao");
+    divData.style.display = "inline-block";
+    
+    // Procura o último registo de sistema para esta turma
+    let importsTurma = historicoSistema.filter(h => h.turma === turma);
+    
+    if (importsTurma.length === 0) {
+        divData.innerHTML = "⚠️ Sem registo de importação recente";
+        divData.style.color = "#c62828";
+        divData.style.background = "#ffebee";
+        return;
+    }
+
+    let ultimaDataStr = importsTurma[importsTurma.length - 1].data; // Ex: 10/03/2026
+    
+    // Converte DD/MM/AAAA para formato entendível (JavaScript)
+    let partes = ultimaDataStr.split('/');
+    if(partes.length === 3) {
+        let dataImport = new Date(partes[2], partes[1] - 1, partes[0]);
+        let hoje = new Date();
+        let diffDias = (hoje - dataImport) / (1000 * 3600 * 24);
+
+        if (diffDias > 7) {
+            divData.innerHTML = `⚠️ Dados desatualizados (Última importação: ${ultimaDataStr})`;
+            divData.style.color = "#c62828";
+            divData.style.background = "#ffebee";
+        } else {
+            divData.innerHTML = `✅ Dados atualizados (Última importação: ${ultimaDataStr})`;
+            divData.style.color = "#2e7d32";
+            divData.style.background = "#e8f5e9";
+        }
+    } else {
+        divData.innerHTML = `Última importação: ${ultimaDataStr}`;
+    }
+}
+
 function mostrarTabela() {
     const tbody = document.getElementById("tabela-corpo");
     tbody.innerHTML = "";
@@ -289,8 +365,6 @@ function mostrarTabela() {
         if (aluno.detalhes.length > 0) {
             aluno.detalhes.forEach(d => {
                 let classeExtra = (d.status === "Desistente" || d.status === "Risco Alto") ? "alert" : "";
-                // --- MUDANÇA AQUI: Mostrando Faltas e Porcentagem ---
-                // Exemplo: Matemática: 20 (25%)
                 htmlDisciplinas += `<span class="tag-materia ${classeExtra}">${d.disciplina}: ${d.faltas} (${d.perc})</span>`;
             });
         } else {
@@ -307,7 +381,7 @@ function mostrarTabela() {
             <td>${ultimaAcao}</td>
             <td>
                 <button class="btn-hist" onclick="verHistorico('${aluno.nome}')">📜 Ver</button>
-                <button class="btn-acao" onclick="registrarAcao('${aluno.nome}')">➕ Ação</button>
+                <button class="btn-acao" onclick="abrirModalAcao('${aluno.nome}')">➕ Ação</button>
             </td>
         `;
         tbody.appendChild(tr);
@@ -319,7 +393,7 @@ function mostrarTabela() {
     document.getElementById("c-critico").innerText = cont["Desistente"];
 }
 
-// --- OUTRAS FUNÇÕES (Importar, Histórico, etc) ---
+// --- FUNÇÕES DE IMPORTAÇÃO INTELIGENTE ---
 function abrirImportacao() { document.getElementById("modalImport").style.display = "flex"; }
 
 function atualizarPrevia() {
@@ -330,7 +404,7 @@ function atualizarPrevia() {
     dadosProntosParaSalvar = [];
     tbody.innerHTML = "";
     
-    if(!texto) { tbody.innerHTML = "<tr><td colspan='2' style='text-align:center; color:#999;'>Aguardando dados...</td></tr>"; return; }
+    if(!texto) { tbody.innerHTML = "<tr><td colspan='2' style='text-align:center; color:#999;'>Aguardar dados...</td></tr>"; return; }
 
     let linhas = texto.trim().split("\n");
     let qtdMostrada = 0;
@@ -350,7 +424,7 @@ function atualizarPrevia() {
             }
         }
     });
-    if(dadosProntosParaSalvar.length === 0) tbody.innerHTML = "<tr><td colspan='2' style='text-align:center; color:red;'>Nenhum dado detectado. Ajuste as colunas.</td></tr>";
+    if(dadosProntosParaSalvar.length === 0) tbody.innerHTML = "<tr><td colspan='2' style='text-align:center; color:red;'>Nenhum dado detetado. Ajuste as colunas.</td></tr>";
 }
 
 async function executarImportacao() {
@@ -358,12 +432,29 @@ async function executarImportacao() {
     if(!aba) return alert("Selecione a matéria!");
     if(dadosProntosParaSalvar.length === 0) return alert("Prévia vazia.");
     if(!confirm(`Confirma importação de ${dadosProntosParaSalvar.length} alunos?`)) return;
+    
+    let infoMateria = listaMateriasSimples.find(m => m.aba === aba);
+    
     try {
-        await fetch(SCRIPT_URL, {
-            method: "POST",
-            body: JSON.stringify({ tipo: "IMPORTAR", abaDestino: aba, lista: dadosProntosParaSalvar })
-        });
-        alert("Sucesso!");
+        // Dispara as duas gravações simultaneamente (A Tabela + O Registo Oculto)
+        await Promise.all([
+            fetch(SCRIPT_URL, {
+                method: "POST",
+                body: JSON.stringify({ tipo: "IMPORTAR", abaDestino: aba, lista: dadosProntosParaSalvar })
+            }),
+            fetch(SCRIPT_URL, {
+                method: "POST",
+                body: JSON.stringify({ 
+                    turma: infoMateria.turma, 
+                    aluno: "[SISTEMA]", 
+                    faltas: "-", 
+                    data: new Date().toLocaleDateString('pt-BR'), 
+                    acao: "Importação: " + infoMateria.nome 
+                })
+            })
+        ]);
+        
+        alert("Importação realizada com sucesso!");
         document.getElementById("txtImport").value = "";
         document.getElementById("tbodyPrevia").innerHTML = "";
         fecharModal('modalImport');
@@ -371,35 +462,58 @@ async function executarImportacao() {
     } catch(e) { alert("Erro ao enviar."); }
 }
 
+// --- FUNÇÕES DE HISTÓRICO E AÇÃO ---
 function obterUltimaAcao(nome) {
     let acoes = historicoGlobal.filter(h => h.aluno === nome);
-    if (acoes.length === 0) return "<span style='color:#ccc; font-size:11px'>Sem registro</span>";
+    if (acoes.length === 0) return "<span style='color:#ccc; font-size:11px'>Sem registo</span>";
     return `<span style="color:#555; font-weight:bold;">${acoes[acoes.length-1].data}</span>`;
 }
+
 function verHistorico(nome) {
     document.getElementById("modalHist").style.display = "flex";
     document.getElementById("modalTitulo").innerText = "Histórico: " + nome;
     const lista = document.getElementById("modalLista");
     lista.innerHTML = "";
     let acoes = historicoGlobal.filter(h => h.aluno === nome).reverse(); 
-    if (acoes.length === 0) lista.innerHTML = "<p>Nenhum registro.</p>";
+    if (acoes.length === 0) lista.innerHTML = "<p>Nenhum registo encontrado.</p>";
     else acoes.forEach(a => lista.innerHTML += `<div class="hist-item"><span class="hist-data">📅 ${a.data}</span><div class="hist-texto">${a.acao}</div></div>`);
 }
-async function registrarAcao(nome) {
-    let acao = prompt(`Registre a ação para ${nome}:`);
-    if (!acao) return;
+
+// NOVO: Funções para o Modal de Ação Padronizado
+function abrirModalAcao(nome) {
+    alunoAcaoPendente = nome;
+    document.getElementById("acaoNomeAluno").innerText = "Aluno(a): " + nome;
+    document.getElementById("selTipoAcao").value = "📞 Ligação Telefônica";
+    document.getElementById("txtDetalheAcao").value = "";
+    document.getElementById("modalAcao").style.display = "flex";
+}
+
+async function salvarAcaoPadronizada() {
+    let tipoAcao = document.getElementById("selTipoAcao").value;
+    let detalhe = document.getElementById("txtDetalheAcao").value;
+    
+    if (detalhe.trim() === "") return alert("Por favor, preencha os detalhes do contacto.");
+    
+    // Concatena a escolha com o texto
+    let acaoFinal = `[${tipoAcao}] ${detalhe}`;
     let turma = document.getElementById("selTurma").value;
+    
+    document.getElementById("modalAcao").style.display = "none";
+    
     try {
         await fetch(SCRIPT_URL, {
             method: "POST",
             body: JSON.stringify({
-                turma: turma, aluno: nome, faltas: "Acompanhamento", 
-                data: new Date().toLocaleDateString('pt-BR'), acao: acao
+                turma: turma, 
+                aluno: alunoAcaoPendente, 
+                faltas: "Acompanhamento", 
+                data: new Date().toLocaleDateString('pt-BR'), 
+                acao: acaoFinal
             })
         });
-        alert("Salvo!");
+        alert("Ação guardada com sucesso!");
         carregarTudo(); 
-    } catch (e) { alert("Erro ao salvar."); }
+    } catch (e) { alert("Erro ao guardar."); }
 }
 
 function fecharModal(id) { document.getElementById(id).style.display = "none"; }
