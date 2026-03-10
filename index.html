@@ -47,7 +47,6 @@
         .hist-data { font-size: 12px; font-weight: bold; color: #666; display: block; margin-bottom: 4px; }
         .hist-texto { font-size: 14px; color: #333; line-height: 1.4; }
 
-        /* Estilos da Importação e Ação */
         textarea { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px; margin-top: 10px; box-sizing: border-box; }
         #txtImport { height: 100px; font-family: monospace; font-size: 11px; white-space: pre; overflow: scroll; }
         #txtDetalheAcao { height: 80px; font-family: inherit; font-size: 14px; resize: none; }
@@ -62,10 +61,8 @@
         .tabela-previa th, .tabela-previa td { border: 1px solid #ddd; padding: 4px; text-align: left; }
         .tabela-previa th { background: #f0f0f0; }
         
-        /* NOVO: Data de Atualização */
         .info-atualizacao { font-size: 12px; font-weight: bold; margin-top: 5px; display: inline-block; padding: 3px 8px; border-radius: 4px; background: #f1f3f5; }
 
-        /* IMPRESSÃO LIMPA */
         @media print {
             body { background: white; padding: 0; margin: 0; }
             .container { box-shadow: none; border: none; width: 100%; max-width: 100%; padding: 0; }
@@ -98,6 +95,10 @@
     </div>
 
     <div class="cards">
+        <div class="card" onclick="redefinirFiltro()" style="border-top-color:#555;">
+            <h3 id="c-total">0</h3>
+            <p>Total Alunos</p>
+        </div>
         <div class="card ok" onclick="filtrar('OK')"><h3 id="c-ok">0</h3><p>Frequentando</p></div>
         <div class="card atencao" onclick="filtrar('Atenção')"><h3 id="c-atencao">0</h3><p>Risco (26-50%)</p></div>
         <div class="card risco" onclick="filtrar('Risco Alto')"><h3 id="c-risco">0</h3><p>Alto Risco (51-65%)</p></div>
@@ -135,7 +136,6 @@
         <span class="close-btn" onclick="fecharModal('modalAcao')">&times;</span>
         <h3>Registrar Ação</h3>
         <p id="acaoNomeAluno" style="font-weight:bold; color: #2196F3; font-size: 16px; margin-bottom: 15px;"></p>
-        
         <label class="campo-label">Tipo de Contato:</label>
         <select id="selTipoAcao" style="width:100%; padding:10px; margin-bottom: 15px;">
             <option value="📞 Ligação Telefônica">📞 Ligação Telefônica</option>
@@ -145,11 +145,9 @@
             <option value="⚠️ Conselho Tutelar">⚠️ Encaminhado ao Conselho Tutelar</option>
             <option value="📝 Outro">📝 Outro</option>
         </select>
-        
-        <label class="campo-label">Detalhes / Retorno do Aluno ou Responsável:</label>
-        <textarea id="txtDetalheAcao" placeholder="Ex: O responsável informou que o aluno irá entregar atestado amanhã..."></textarea>
-        
-        <button onclick="salvarAcaoPadronizada()" style="background:#2196F3; width:100%; padding:12px; margin-top:15px; font-size:16px; color: white; border: none; border-radius: 5px; cursor: pointer;">💾 Salvar Histórico</button>
+        <label class="campo-label">Detalhes / Retorno:</label>
+        <textarea id="txtDetalheAcao" placeholder="Escreva aqui..."></textarea>
+        <button onclick="salvarAcaoPadronizada()" style="background:#2196F3; width:100%; padding:12px; margin-top:15px; font-size:16px; color: white; border: none; border-radius: 5px; cursor: pointer;">💾 Salvar</button>
     </div>
 </div>
 
@@ -160,53 +158,43 @@
         <label><b>1. Para qual matéria?</b></label>
         <select id="selImportMateria" style="width:100%; margin: 5px 0 10px; padding: 8px;"></select>
         <label><b>2. Cole os dados copiados aqui:</b></label>
-        <textarea id="txtImport" placeholder="Cole aqui a tabela inteira do sistema..." oninput="atualizarPrevia()"></textarea>
+        <textarea id="txtImport" placeholder="Cole aqui..." oninput="atualizarPrevia()"></textarea>
         <div class="config-colunas">
-            <div><label>Coluna do Nome (Nº)</label><input type="number" id="colNome" value="2" min="1" onchange="atualizarPrevia()"></div>
-            <div><label>Coluna de Faltas (Nº)</label><input type="number" id="colFaltas" value="5" min="1" onchange="atualizarPrevia()"></div>
+            <div><label>Coluna do Nome</label><input type="number" id="colNome" value="2" min="1" onchange="atualizarPrevia()"></div>
+            <div><label>Coluna de Faltas</label><input type="number" id="colFaltas" value="5" min="1" onchange="atualizarPrevia()"></div>
         </div>
         <div class="previa-box">
             <div class="previa-titulo">👁️ Pré-visualização:</div>
             <table class="tabela-previa"><thead><tr><th>Nome</th><th>Faltas</th></tr></thead><tbody id="tbodyPrevia"><tr><td colspan="2" style="text-align:center;">Aguardando...</td></tr></tbody></table>
         </div>
-        <button onclick="executarImportacao()" style="background:#9c27b0; width:100%; padding:12px; margin-top:15px; font-size:16px; color: white; border: none; border-radius: 5px; cursor: pointer;">💾 Salvar Dados na Planilha</button>
+        <button onclick="executarImportacao()" style="background:#9c27b0; width:100%; padding:12px; margin-top:15px; font-size:16px; color: white; border: none; border-radius: 5px; cursor: pointer;">💾 Salvar</button>
     </div>
 </div>
 
 <script>
-// --- CONFIGURAÇÕES ---
 const SHEET_ID = "1NBBtdsqbR4FzNyNsCuG3K3HdSRk6QzT-QR2mnjHEXJ0"; 
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxYJlXYdZID3PUkDWnYDBMhD_IshytwlEsPnT1AO_1nZFRapx4D0ssFwXaZgRDKfc4F/exec"; 
-
 const CONFIG_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=Config`;
 const HIST_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=Historico`;
 
 let historicoGlobal = [];
-let historicoSistema = []; // NOVO: Guarda apenas os registos de importação
+let historicoSistema = [];
 let estruturaEscola = {}; 
+let dadosConsolidados = []; // SEMPRE contém a turma inteira
+let dadosFiltrados = [];    // Apenas os que aparecem na tabela
 let listaMateriasSimples = []; 
-let dadosConsolidados = [];
-let dadosFiltrados = [];
-let dadosProntosParaSalvar = [];
-let alunoAcaoPendente = ""; // NOVO: Guarda o nome do aluno que vai receber a ação
+let alunoAcaoPendente = ""; 
 
 window.onload = carregarTudo;
 
 function carregarTudo() {
     fetch(`${HIST_URL}&t=${Date.now()}`).then(res => res.text()).then(data => {
         const json = JSON.parse(data.substring(47).slice(0, -2));
-        
-        let historicoGeral = json.table.rows.map(r => ({
-            turma: r.c[0]?.v,
-            aluno: r.c[1]?.v,
-            data: r.c[3]?.f || r.c[3]?.v,
-            acao: r.c[4]?.v
+        let hGeral = json.table.rows.map(r => ({
+            turma: r.c[0]?.v, aluno: r.c[1]?.v, data: r.c[3]?.f || r.c[3]?.v, acao: r.c[4]?.v
         })).filter(h => h.aluno);
-
-        // Separa as ações dos alunos das ações ocultas do sistema
-        historicoGlobal = historicoGeral.filter(h => h.aluno !== "[SISTEMA]");
-        historicoSistema = historicoGeral.filter(h => h.aluno === "[SISTEMA]");
-        
+        historicoGlobal = hGeral.filter(h => h.aluno !== "[SISTEMA]");
+        historicoSistema = hGeral.filter(h => h.aluno === "[SISTEMA]");
         carregarConfig();
     });
 }
@@ -215,313 +203,167 @@ function carregarConfig() {
     fetch(`${CONFIG_URL}&t=${Date.now()}`).then(res => res.text()).then(data => {
         const json = JSON.parse(data.substring(47).slice(0, -2));
         const select = document.getElementById("selTurma");
-        const selectImport = document.getElementById("selImportMateria");
+        const sImport = document.getElementById("selImportMateria");
         select.innerHTML = "<option value=''>Selecione a turma...</option>";
-        selectImport.innerHTML = "<option value=''>Selecione a matéria...</option>";
-        estruturaEscola = {};
-        listaMateriasSimples = [];
-
+        sImport.innerHTML = "<option value=''>Selecione a matéria...</option>";
+        estruturaEscola = {}; listaMateriasSimples = [];
         json.table.rows.forEach(r => {
-            let turma = r.c[0]?.v;
-            let disciplina = r.c[1]?.v;
-            let aba = r.c[2]?.v;
-            let carga = r.c[3]?.v;
-            if (turma && aba && carga) {
-                if (!estruturaEscola[turma]) estruturaEscola[turma] = [];
-                estruturaEscola[turma].push({ disciplina, aba, cargaTotal: carga });
-                listaMateriasSimples.push({ nome: `${turma} - ${disciplina}`, aba: aba, turma: turma });
+            let t = r.c[0]?.v, d = r.c[1]?.v, a = r.c[2]?.v, c = r.c[3]?.v;
+            if (t && a && c) {
+                if (!estruturaEscola[t]) estruturaEscola[t] = [];
+                estruturaEscola[t].push({ disciplina: d, aba: a, cargaTotal: c });
+                listaMateriasSimples.push({ nome: `${t} - ${d}`, aba: a, turma: t });
             }
         });
-
-        Object.keys(estruturaEscola).sort((a,b)=>a.localeCompare(b, undefined, {numeric:true})).forEach(t => {
-            let opt = document.createElement("option");
-            opt.value = t; opt.textContent = t; select.appendChild(opt);
+        Object.keys(estruturaEscola).sort((a,b)=>a.localeCompare(b,undefined,{numeric:true})).forEach(t => {
+            let opt = document.createElement("option"); opt.value = t; opt.textContent = t; select.appendChild(opt);
         });
-
         listaMateriasSimples.forEach(m => {
-            let opt = document.createElement("option");
-            opt.value = m.aba; opt.textContent = m.nome; selectImport.appendChild(opt);
+            let opt = document.createElement("option"); opt.value = m.aba; opt.textContent = m.nome; sImport.appendChild(opt);
         });
-
         select.addEventListener("change", () => processarTurma(select.value));
         document.getElementById("loading").style.display = "none";
     });
 }
 
 async function processarTurma(turma) {
-    if (!turma) {
-        document.getElementById("dataAtualizacao").style.display = "none";
-        return;
-    }
+    if (!turma) { document.getElementById("dataAtualizacao").style.display = "none"; return; }
     document.getElementById("loading").style.display = "block";
-    document.getElementById("tabela-corpo").innerHTML = "";
-    document.getElementById("subtitulo").innerText = "A analisar a turma " + turma + "...";
-    
-    verificarDataImportacao(turma); // NOVO: Analisa a data dos dados
-
+    verificarDataImportacao(turma);
     let mapaAlunos = {};
     let materias = estruturaEscola[turma];
-
     const promessas = materias.map(mat => {
         return fetch(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(mat.aba)}&t=${Date.now()}`)
-            .then(res => res.text())
-            .then(txt => {
-                try {
-                    const json = JSON.parse(txt.substring(47).slice(0, -2));
-                    return { mat, linhas: json.table.rows };
-                } catch(e) { return { mat, linhas: [] }; } 
+            .then(res => res.text()).then(txt => {
+                try { return { mat, linhas: JSON.parse(txt.substring(47).slice(0,-2)).table.rows }; } catch(e) { return { mat, linhas: [] }; }
             });
     });
-
     const resultados = await Promise.all(promessas);
-
     resultados.forEach(res => {
-        let carga = res.mat.cargaTotal;
-        let nomeDisciplina = res.mat.disciplina;
-
+        let carga = res.mat.cargaTotal, disc = res.mat.disciplina;
         res.linhas.forEach(linha => {
-            let nome = linha.c[0]?.v;
-            let faltas = linha.c[1]?.v || 0;
+            let nome = linha.c[0]?.v, faltas = linha.c[1]?.v || 0;
             if (nome) {
-                if (!mapaAlunos[nome]) mapaAlunos[nome] = { nome: nome, status: "OK", prioridade: 0, detalhes: [] };
-                
-                let perc = (faltas / carga) * 100;
-                let statusMat = "OK";
-                if (perc > 65) statusMat = "Desistente";
-                else if (perc > 50) statusMat = "Risco Alto";
-                else if (perc > 25) statusMat = "Atenção";
-
-                if (statusMat !== "OK") {
-                    mapaAlunos[nome].detalhes.push({ 
-                        disciplina: nomeDisciplina, 
-                        perc: perc.toFixed(0) + "%", 
-                        faltas: faltas, 
-                        status: statusMat 
-                    });
-                }
-
-                let peso = statusMat === "OK" ? 0 : (statusMat === "Atenção" ? 1 : (statusMat === "Risco Alto" ? 2 : 3));
-                if (peso > mapaAlunos[nome].prioridade) {
-                    mapaAlunos[nome].prioridade = peso;
-                    mapaAlunos[nome].status = statusMat;
-                }
+                if (!mapaAlunos[nome]) mapaAlunos[nome] = { nome, status: "OK", prioridade: 0, detalhes: [] };
+                let perc = (faltas / carga) * 100, sMat = "OK";
+                if (perc > 65) sMat = "Desistente"; else if (perc > 50) sMat = "Risco Alto"; else if (perc > 25) sMat = "Atenção";
+                if (sMat !== "OK") mapaAlunos[nome].detalhes.push({ disciplina: disc, perc: perc.toFixed(0) + "%", faltas, status: sMat });
+                let p = sMat === "OK" ? 0 : (sMat === "Atenção" ? 1 : (sMat === "Risco Alto" ? 2 : 3));
+                if (p > mapaAlunos[nome].prioridade) { mapaAlunos[nome].prioridade = p; mapaAlunos[nome].status = sMat; }
             }
         });
     });
-
     dadosConsolidados = Object.values(mapaAlunos).sort((a,b) => b.prioridade - a.prioridade);
-    dadosFiltrados = [...dadosConsolidados];
+    redefinirFiltro(); // Mostra tudo inicialmente
     document.getElementById("loading").style.display = "none";
-    mostrarTabela();
 }
 
-// NOVO: Verifica se os dados estão velhos (> 7 dias)
-function verificarDataImportacao(turma) {
-    let divData = document.getElementById("dataAtualizacao");
-    divData.style.display = "inline-block";
-    
-    // Procura o último registo de sistema para esta turma
-    let importsTurma = historicoSistema.filter(h => h.turma === turma);
-    
-    if (importsTurma.length === 0) {
-        divData.innerHTML = "⚠️ Sem registo de importação recente";
-        divData.style.color = "#c62828";
-        divData.style.background = "#ffebee";
-        return;
-    }
-
-    let ultimaDataStr = importsTurma[importsTurma.length - 1].data; // Ex: 10/03/2026
-    
-    // Converte DD/MM/AAAA para formato entendível (JavaScript)
-    let partes = ultimaDataStr.split('/');
-    if(partes.length === 3) {
-        let dataImport = new Date(partes[2], partes[1] - 1, partes[0]);
-        let hoje = new Date();
-        let diffDias = (hoje - dataImport) / (1000 * 3600 * 24);
-
-        if (diffDias > 7) {
-            divData.innerHTML = `⚠️ Dados desatualizados (Última importação: ${ultimaDataStr})`;
-            divData.style.color = "#c62828";
-            divData.style.background = "#ffebee";
-        } else {
-            divData.innerHTML = `✅ Dados atualizados (Última importação: ${ultimaDataStr})`;
-            divData.style.color = "#2e7d32";
-            divData.style.background = "#e8f5e9";
-        }
-    } else {
-        divData.innerHTML = `Última importação: ${ultimaDataStr}`;
-    }
+// CORREÇÃO: Função para redefinir e atualizar cards SEMPRE pelo consolidado
+function redefinirFiltro() {
+    dadosFiltrados = [...dadosConsolidados];
+    document.getElementById("busca").value = "";
+    mostrar();
 }
 
-function mostrarTabela() {
+function filtrar(tipo) {
+    dadosFiltrados = dadosConsolidados.filter(a => a.status === tipo);
+    mostrar();
+}
+
+function mostrar() {
     const tbody = document.getElementById("tabela-corpo");
     tbody.innerHTML = "";
+    
+    // ATUALIZAÇÃO DOS CARDS: Sempre baseada no dadosConsolidados (turma toda)
     let cont = { "OK": 0, "Atenção": 0, "Risco Alto": 0, "Desistente": 0 };
-    let cores = { "OK": "#2e7d32", "Atenção": "#f9a825", "Risco Alto": "#e67e22", "Desistente": "#c62828" };
-
-    dadosFiltrados.forEach(aluno => {
+    dadosConsolidados.forEach(aluno => {
         cont[aluno.status]++;
-        let htmlDisciplinas = "";
-        if (aluno.detalhes.length > 0) {
-            aluno.detalhes.forEach(d => {
-                let classeExtra = (d.status === "Desistente" || d.status === "Risco Alto") ? "alert" : "";
-                htmlDisciplinas += `<span class="tag-materia ${classeExtra}">${d.disciplina}: ${d.faltas} (${d.perc})</span>`;
-            });
-        } else {
-            htmlDisciplinas = "<span style='color:#ccc; font-size:11px'>—</span>";
-        }
-        
-        let ultimaAcao = obterUltimaAcao(aluno.nome);
-
-        let tr = document.createElement("tr");
-        tr.innerHTML = `
-            <td><b>${aluno.nome}</b></td>
-            <td><span class="badge" style="background:${cores[aluno.status]}">${aluno.status}</span></td>
-            <td>${htmlDisciplinas}</td>
-            <td>${ultimaAcao}</td>
-            <td>
-                <button class="btn-hist" onclick="verHistorico('${aluno.nome}')">📜 Ver</button>
-                <button class="btn-acao" onclick="abrirModalAcao('${aluno.nome}')">➕ Ação</button>
-            </td>
-        `;
-        tbody.appendChild(tr);
     });
-
+    
+    document.getElementById("c-total").innerText = dadosConsolidados.length;
     document.getElementById("c-ok").innerText = cont["OK"];
     document.getElementById("c-atencao").innerText = cont["Atenção"];
     document.getElementById("c-risco").innerText = cont["Risco Alto"];
     document.getElementById("c-critico").innerText = cont["Desistente"];
+
+    // RENDERIZAÇÃO DA TABELA: Baseada no dadosFiltrados (quem o usuário quer ver)
+    let cores = { "OK": "#2e7d32", "Atenção": "#f9a825", "Risco Alto": "#e67e22", "Desistente": "#c62828" };
+    dadosFiltrados.forEach(aluno => {
+        let hDisc = aluno.detalhes.map(d => `<span class="tag-materia ${d.status==='Desistente'||d.status==='Risco Alto'?'alert':''}">${d.disciplina}: ${d.faltas} (${d.perc})</span>`).join("") || "<span style='color:#ccc; font-size:11px'>—</span>";
+        let tr = document.createElement("tr");
+        tr.innerHTML = `<td><b>${aluno.nome}</b></td><td><span class="badge" style="background:${cores[aluno.status]}">${aluno.status}</span></td><td>${hDisc}</td><td>${obterUltimaAcao(aluno.nome)}</td><td><button class="btn-hist" onclick="verHistorico('${aluno.nome}')">📜 Ver</button><button class="btn-acao" onclick="abrirModalAcao('${aluno.nome}')">➕ Ação</button></td>`;
+        tbody.appendChild(tr);
+    });
 }
 
-// --- FUNÇÕES DE IMPORTAÇÃO INTELIGENTE ---
+function verificarDataImportacao(t) {
+    let div = document.getElementById("dataAtualizacao"); div.style.display = "inline-block";
+    let imp = historicoSistema.filter(h => h.turma === t);
+    if (imp.length === 0) { div.innerHTML = "⚠️ Sem registo recente"; div.style.color = "#c62828"; div.style.background = "#ffebee"; return; }
+    let dStr = imp[imp.length - 1].data, p = dStr.split('/'), dI = new Date(p[2], p[1]-1, p[0]), diff = (new Date() - dI) / 86400000;
+    div.innerHTML = (diff > 7 ? "⚠️ Dados desatualizados" : "✅ Dados atualizados") + ` (${dStr})`;
+    div.style.color = diff > 7 ? "#c62828" : "#2e7d32"; div.style.background = diff > 7 ? "#ffebee" : "#e8f5e9";
+}
+
+function obterUltimaAcao(n) {
+    let a = historicoGlobal.filter(h => h.aluno === n);
+    return a.length === 0 ? "<span style='color:#ccc; font-size:11px'>Sem registo</span>" : `<b>${a[a.length-1].data}</b>`;
+}
+
+function verHistorico(n) {
+    document.getElementById("modalHist").style.display = "flex";
+    document.getElementById("modalTitulo").innerText = "Histórico: " + n;
+    let r = historicoGlobal.filter(h => h.aluno === n).reverse(), l = document.getElementById("modalLista");
+    l.innerHTML = r.length ? r.map(a => `<div class="hist-item"><span class="hist-data">📅 ${a.data}</span><div class="hist-texto">${a.acao}</div></div>`).join("") : "<p>Nenhum registo.</p>";
+}
+
+function abrirModalAcao(n) { alunoAcaoPendente = n; document.getElementById("acaoNomeAluno").innerText = "Aluno: " + n; document.getElementById("modalAcao").style.display = "flex"; }
+
+async function salvarAcaoPadronizada() {
+    let t = document.getElementById("selTipoAcao").value, d = document.getElementById("txtDetalheAcao").value;
+    if (!d.trim()) return alert("Preencha os detalhes.");
+    document.getElementById("modalAcao").style.display = "none";
+    try {
+        await fetch(SCRIPT_URL, { method: "POST", body: JSON.stringify({ turma: document.getElementById("selTurma").value, aluno: alunoAcaoPendente, faltas: "Acompanhamento", data: new Date().toLocaleDateString('pt-BR'), acao: `[${t}] ${d}` }) });
+        alert("Salvo!"); carregarTudo(); 
+    } catch (e) { alert("Erro ao salvar."); }
+}
+
 function abrirImportacao() { document.getElementById("modalImport").style.display = "flex"; }
-
 function atualizarPrevia() {
-    let texto = document.getElementById("txtImport").value;
-    let colNome = parseInt(document.getElementById("colNome").value) - 1; 
-    let colFaltas = parseInt(document.getElementById("colFaltas").value) - 1;
-    let tbody = document.getElementById("tbodyPrevia");
-    dadosProntosParaSalvar = [];
-    tbody.innerHTML = "";
-    
-    if(!texto) { tbody.innerHTML = "<tr><td colspan='2' style='text-align:center; color:#999;'>Aguardar dados...</td></tr>"; return; }
-
-    let linhas = texto.trim().split("\n");
-    let qtdMostrada = 0;
-    linhas.forEach(linha => {
-        let colunas = linha.split("\t");
-        if(colunas[colNome] !== undefined && colunas[colFaltas] !== undefined) {
-            let nome = colunas[colNome].trim();
-            let faltas = colunas[colFaltas].trim();
-            if(nome.length > 2) {
-                let numeroFaltas = faltas.replace(/\D/g, "");
-                if(numeroFaltas === "") numeroFaltas = "0";
-                dadosProntosParaSalvar.push([nome, numeroFaltas]);
-                if(qtdMostrada < 5) {
-                    tbody.innerHTML += `<tr><td>${nome}</td><td>${numeroFaltas}</td></tr>`;
-                    qtdMostrada++;
-                }
+    let t = document.getElementById("txtImport").value, n = parseInt(document.getElementById("colNome").value)-1, f = parseInt(document.getElementById("colFaltas").value)-1, b = document.getElementById("tbodyPrevia");
+    dadosProntosParaSalvar = []; b.innerHTML = "";
+    if(!t) { b.innerHTML = "<tr><td colspan='2' style='text-align:center;'>Aguardando...</td></tr>"; return; }
+    t.trim().split("\n").forEach(l => {
+        let c = l.split("\t");
+        if(c[n] && c[f]) {
+            let nm = c[n].trim(), fl = c[f].trim().replace(/\D/g,"") || "0";
+            if(nm.length > 2) {
+                dadosProntosParaSalvar.push([nm, fl]);
+                if(dadosProntosParaSalvar.length <= 5) b.innerHTML += `<tr><td>${nm}</td><td>${fl}</td></tr>`;
             }
         }
     });
-    if(dadosProntosParaSalvar.length === 0) tbody.innerHTML = "<tr><td colspan='2' style='text-align:center; color:red;'>Nenhum dado detetado. Ajuste as colunas.</td></tr>";
 }
-
 async function executarImportacao() {
-    let aba = document.getElementById("selImportMateria").value;
-    if(!aba) return alert("Selecione a matéria!");
-    if(dadosProntosParaSalvar.length === 0) return alert("Prévia vazia.");
-    if(!confirm(`Confirma importação de ${dadosProntosParaSalvar.length} alunos?`)) return;
-    
-    let infoMateria = listaMateriasSimples.find(m => m.aba === aba);
-    
+    let a = document.getElementById("selImportMateria").value;
+    if(!a || !dadosProntosParaSalvar.length) return alert("Selecione a matéria/dados.");
+    if(!confirm(`Importar ${dadosProntosParaSalvar.length} alunos?`)) return;
+    let inf = listaMateriasSimples.find(m => m.aba === a);
     try {
-        // Dispara as duas gravações simultaneamente (A Tabela + O Registo Oculto)
         await Promise.all([
-            fetch(SCRIPT_URL, {
-                method: "POST",
-                body: JSON.stringify({ tipo: "IMPORTAR", abaDestino: aba, lista: dadosProntosParaSalvar })
-            }),
-            fetch(SCRIPT_URL, {
-                method: "POST",
-                body: JSON.stringify({ 
-                    turma: infoMateria.turma, 
-                    aluno: "[SISTEMA]", 
-                    faltas: "-", 
-                    data: new Date().toLocaleDateString('pt-BR'), 
-                    acao: "Importação: " + infoMateria.nome 
-                })
-            })
+            fetch(SCRIPT_URL, { method: "POST", body: JSON.stringify({ tipo: "IMPORTAR", abaDestino: a, lista: dadosProntosParaSalvar }) }),
+            fetch(SCRIPT_URL, { method: "POST", body: JSON.stringify({ turma: inf.turma, aluno: "[SISTEMA]", faltas: "-", data: new Date().toLocaleDateString('pt-BR'), acao: "Importação: " + inf.nome }) })
         ]);
-        
-        alert("Importação realizada com sucesso!");
-        document.getElementById("txtImport").value = "";
-        document.getElementById("tbodyPrevia").innerHTML = "";
-        fecharModal('modalImport');
-        carregarTudo(); 
-    } catch(e) { alert("Erro ao enviar."); }
-}
-
-// --- FUNÇÕES DE HISTÓRICO E AÇÃO ---
-function obterUltimaAcao(nome) {
-    let acoes = historicoGlobal.filter(h => h.aluno === nome);
-    if (acoes.length === 0) return "<span style='color:#ccc; font-size:11px'>Sem registo</span>";
-    return `<span style="color:#555; font-weight:bold;">${acoes[acoes.length-1].data}</span>`;
-}
-
-function verHistorico(nome) {
-    document.getElementById("modalHist").style.display = "flex";
-    document.getElementById("modalTitulo").innerText = "Histórico: " + nome;
-    const lista = document.getElementById("modalLista");
-    lista.innerHTML = "";
-    let acoes = historicoGlobal.filter(h => h.aluno === nome).reverse(); 
-    if (acoes.length === 0) lista.innerHTML = "<p>Nenhum registo encontrado.</p>";
-    else acoes.forEach(a => lista.innerHTML += `<div class="hist-item"><span class="hist-data">📅 ${a.data}</span><div class="hist-texto">${a.acao}</div></div>`);
-}
-
-// NOVO: Funções para o Modal de Ação Padronizado
-function abrirModalAcao(nome) {
-    alunoAcaoPendente = nome;
-    document.getElementById("acaoNomeAluno").innerText = "Aluno(a): " + nome;
-    document.getElementById("selTipoAcao").value = "📞 Ligação Telefônica";
-    document.getElementById("txtDetalheAcao").value = "";
-    document.getElementById("modalAcao").style.display = "flex";
-}
-
-async function salvarAcaoPadronizada() {
-    let tipoAcao = document.getElementById("selTipoAcao").value;
-    let detalhe = document.getElementById("txtDetalheAcao").value;
-    
-    if (detalhe.trim() === "") return alert("Por favor, preencha os detalhes do contacto.");
-    
-    // Concatena a escolha com o texto
-    let acaoFinal = `[${tipoAcao}] ${detalhe}`;
-    let turma = document.getElementById("selTurma").value;
-    
-    document.getElementById("modalAcao").style.display = "none";
-    
-    try {
-        await fetch(SCRIPT_URL, {
-            method: "POST",
-            body: JSON.stringify({
-                turma: turma, 
-                aluno: alunoAcaoPendente, 
-                faltas: "Acompanhamento", 
-                data: new Date().toLocaleDateString('pt-BR'), 
-                acao: acaoFinal
-            })
-        });
-        alert("Ação guardada com sucesso!");
-        carregarTudo(); 
-    } catch (e) { alert("Erro ao guardar."); }
+        alert("Sucesso!"); fecharModal('modalImport'); carregarTudo(); 
+    } catch(e) { alert("Erro."); }
 }
 
 function fecharModal(id) { document.getElementById(id).style.display = "none"; }
-function filtrar(tipo) { dadosFiltrados = dadosConsolidados.filter(a => a.status === tipo); mostrarTabela(); }
 document.getElementById("busca").addEventListener("input", function() {
-    let termo = this.value.toLowerCase();
-    dadosFiltrados = dadosConsolidados.filter(a => a.nome.toLowerCase().includes(termo));
-    mostrarTabela();
+    let t = this.value.toLowerCase();
+    dadosFiltrados = dadosConsolidados.filter(a => a.nome.toLowerCase().includes(t));
+    mostrar();
 });
 </script>
 </body>
