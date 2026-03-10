@@ -312,40 +312,72 @@ async function salvarAcaoPadronizada() {
 
 function abrirImportacao() { document.getElementById("modalImport").style.display = "flex"; }
 
-// CORREÇÃO: Limpeza mais robusta na prévia para não pular a última linha
+// CORREÇÃO DEFINITIVA DO CONTADOR DE IMPORTAÇÃO
 function atualizarPrevia() {
-    let t = document.getElementById("txtImport").value.trim(), n = parseInt(document.getElementById("colNome").value)-1, f = parseInt(document.getElementById("colFaltas").value)-1, b = document.getElementById("tbodyPrevia");
-    dadosProntosParaSalvar = []; b.innerHTML = "";
-    if(!t) { b.innerHTML = "<tr><td colspan='2' style='text-align:center;'>Aguardando...</td></tr>"; return; }
+    let rawText = document.getElementById("txtImport").value;
+    let colNome = parseInt(document.getElementById("colNome").value) - 1; 
+    let colFaltas = parseInt(document.getElementById("colFaltas").value) - 1;
+    let tbody = document.getElementById("tbodyPrevia");
     
-    t.split("\n").forEach(l => {
-        let c = l.split("\t");
-        if(c.length > Math.max(n, f)) {
-            let nm = c[n]?.trim(), fl = c[f]?.trim().replace(/\D/g,"") || "0";
-            if(nm && nm.length > 1) {
+    dadosProntosParaSalvar = []; 
+    tbody.innerHTML = "";
+    
+    if(!rawText.trim()) {
+        tbody.innerHTML = "<tr><td colspan='2' style='text-align:center;'>Aguardando dados...</td></tr>";
+        return;
+    }
+
+    // Dividir linhas preservando tudo (não dar trim global ainda)
+    let linhas = rawText.split(/\r?\n/);
+
+    linhas.forEach(linha => {
+        if (!linha.trim()) return; // Pula linhas realmente vazias
+
+        let colunas = linha.split("\t");
+        if (colunas.length > Math.max(colNome, colFaltas)) {
+            let nm = colunas[colNome]?.trim();
+            let fl = colunas[colFaltas]?.trim().replace(/\D/g,"") || "0";
+            
+            // Critério: se tiver um nome com pelo menos 2 letras, é aluno
+            if (nm && nm.length >= 2) {
                 dadosProntosParaSalvar.push([nm, fl]);
-                if(dadosProntosParaSalvar.length <= 5) b.innerHTML += `<tr><td>${nm}</td><td>${fl}</td></tr>`;
+                if (dadosProntosParaSalvar.length <= 5) {
+                    tbody.innerHTML += `<tr><td>${nm}</td><td>${fl}</td></tr>`;
+                }
             }
         }
     });
-    if(dadosProntosParaSalvar.length === 0) b.innerHTML = "<tr><td colspan='2' style='text-align:center; color:red;'>Dados não detectados.</td></tr>";
+
+    if(dadosProntosParaSalvar.length === 0) {
+        tbody.innerHTML = "<tr><td colspan='2' style='text-align:center; color:red;'>Nenhum dado detectado. Verifique as colunas.</td></tr>";
+    }
 }
 
 async function executarImportacao() {
-    let a = document.getElementById("selImportMateria").value;
-    if(!a || !dadosProntosParaSalvar.length) return alert("Selecione a matéria/dados.");
-    if(!confirm(`Importar ${dadosProntosParaSalvar.length} alunos?`)) return;
-    let inf = listaMateriasSimples.find(m => m.aba === a);
+    let aba = document.getElementById("selImportMateria").value;
+    
+    // Recalcular no clique para garantir que a lista final é a mesma da prévia
+    atualizarPrevia(); 
+
+    if(!aba || !dadosProntosParaSalvar.length) {
+        return alert("Selecione a matéria e cole os dados corretamente.");
+    }
+
+    if(!confirm(`Confirmar importação de ${dadosProntosParaSalvar.length} alunos?`)) return;
+    
+    let inf = listaMateriasSimples.find(m => m.aba === aba);
     
     try {
         await Promise.all([
-            fetch(SCRIPT_URL, { method: "POST", body: JSON.stringify({ tipo: "IMPORTAR", abaDestino: a, lista: dadosProntosParaSalvar }) }),
+            fetch(SCRIPT_URL, { method: "POST", body: JSON.stringify({ tipo: "IMPORTAR", abaDestino: aba, lista: dadosProntosParaSalvar }) }),
             fetch(SCRIPT_URL, { method: "POST", body: JSON.stringify({ turma: inf.turma, aluno: "[SISTEMA]", faltas: "-", data: new Date().toLocaleDateString('pt-BR'), acao: "Importação: " + inf.nome }) })
         ]);
-        alert(`Sucesso! ${dadosProntosParaSalvar.length} alunos importados.`); 
+        alert(`Sucesso! ${dadosProntosParaSalvar.length} alunos foram salvos na planilha.`); 
         fecharModal('modalImport'); 
         carregarTudo(); 
-    } catch(e) { alert("Erro."); }
+    } catch(e) { 
+        alert("Erro na comunicação com a planilha."); 
+    }
 }
 
 function fecharModal(id) { document.getElementById(id).style.display = "none"; }
