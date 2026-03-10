@@ -4,37 +4,47 @@
     <meta charset="UTF-8">
     <title>Monitoramento de Evasão</title>
     <style>
-        /* --- ESTILOS VISUAIS (IDÊNTICOS) --- */
+        /* --- ESTILOS VISUAIS --- */
         body { font-family: 'Segoe UI', Tahoma, sans-serif; background: #f0f2f5; padding: 20px; color: #333; }
-        .container { max-width: 1300px; margin: auto; background: white; padding: 25px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .container { max-width: 1350px; margin: auto; background: white; padding: 25px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
         .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 2px solid #eee; padding-bottom: 15px; }
         h2 { margin: 0; color: #2c3e50; }
         select { padding: 10px; font-size: 14px; border-radius: 5px; min-width: 200px; border: 1px solid #ccc; }
-        .cards { display: flex; gap: 10px; margin-bottom: 25px; }
-        .card { flex: 1; padding: 15px; text-align: center; border-radius: 8px; background: #fff; border: 1px solid #ddd; border-top: 4px solid #ccc; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
-        .card h3 { margin: 0; font-size: 28px; }
-        .card p { margin: 5px 0 0; font-size: 11px; text-transform: uppercase; color: #666; font-weight: bold; }
-        .ok { border-color: #2e7d32; color: #2e7d32; }
-        .atencao { border-color: #f9a825; color: #f9a825; }
-        .risco { border-color: #e67e22; color: #e67e22; }
-        .critico { border-color: #c62828; color: #c62828; }
+        
+        .cards { display: flex; gap: 8px; margin-bottom: 25px; }
+        .card { flex: 1; padding: 12px 5px; text-align: center; border-radius: 8px; background: #fff; border: 1px solid #ddd; border-top: 4px solid #ccc; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.05); transition: 0.2s; }
+        .card h3 { margin: 0; font-size: 24px; }
+        .card p { margin: 5px 0 0; font-size: 10px; text-transform: uppercase; color: #666; font-weight: bold; }
+        
+        /* Cores dos Cards Padronizadas */
+        .ok { border-top-color: #2e7d32; color: #2e7d32; }
+        .alerta { border-top-color: #fbc02d; color: #fbc02d; } 
+        .atencao { border-top-color: #f9a825; color: #f9a825; } /* LARANJA */
+        .risco { border-top-color: #e67e22; color: #e67e22; }    /* LARANJA ESCURO */
+        .critico { border-top-color: #c62828; color: #c62828; }  /* VERMELHO */
+        
         table { width: 100%; border-collapse: collapse; margin-top: 10px; }
         th { background: #f8f9fa; text-align: left; padding: 12px; border-bottom: 2px solid #ddd; color: #555; font-size: 13px; }
         td { padding: 10px; border-bottom: 1px solid #eee; vertical-align: middle; font-size: 14px; }
-        .badge { padding: 5px 10px; border-radius: 15px; color: white; font-weight: bold; font-size: 11px; text-transform: uppercase; }
+        .badge { padding: 4px 8px; border-radius: 12px; color: white; font-weight: bold; font-size: 10px; text-transform: uppercase; }
+        
         .tag-materia { display: inline-block; background: #f1f3f5; color: #495057; padding: 3px 6px; border-radius: 4px; font-size: 11px; margin: 2px; border: 1px solid #dee2e6; }
-        .tag-materia.alert { background: #ffebee; color: #c62828; border-color: #ffcdd2; font-weight: bold; }
+        .tag-materia.tag-alerta { background: #fffde7; color: #fbc02d; border-color: #fff9c4; font-weight: bold; }
+        .tag-materia.tag-atencao { background: #fff3e0; color: #f9a825; border-color: #ffe0b2; font-weight: bold; }
+        .tag-materia.tag-perigo { background: #ffebee; color: #c62828; border-color: #ffcdd2; font-weight: bold; }
+        
         button { cursor: pointer; border: none; padding: 8px 12px; border-radius: 4px; font-size: 12px; color: white; transition: 0.2s; margin-right: 5px; }
         .btn-hist { background: #607d8b; }
         .btn-acao { background: #2196F3; }
         .btn-print { background: #555; padding: 10px 20px; font-size: 14px; }
         .btn-import { background: #9c27b0; padding: 10px 20px; font-size: 14px; margin-right: 10px; }
+        
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center; }
         .modal-content { background: white; width: 600px; max-width: 95%; padding: 25px; border-radius: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); position: relative; max-height: 90vh; overflow-y: auto; }
         .close-btn { position: absolute; top: 15px; right: 20px; font-size: 24px; cursor: pointer; color: #999; }
         textarea { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px; margin-top: 10px; box-sizing: border-box; }
-        .previa-box { margin-top: 15px; border: 1px solid #eee; border-radius: 5px; padding: 10px; background: #fff; }
         .info-atualizacao { font-size: 12px; font-weight: bold; margin-top: 5px; display: inline-block; padding: 3px 8px; border-radius: 4px; background: #f1f3f5; }
+        
         @media print {
             .cards, .top-bar button, select, label, input, .btn-acao, .btn-hist, .btn-import, .info-atualizacao { display: none !important; }
             .top-bar { justify-content: center; border-bottom: 2px solid #000; }
@@ -60,14 +70,12 @@
     </div>
 
     <div class="cards">
-        <div class="card" onclick="redefinirFiltro()" style="border-top-color:#555;">
-            <h3 id="c-total">0</h3>
-            <p>Total Alunos</p>
-        </div>
+        <div class="card" onclick="redefinirFiltro()" style="border-top-color:#555;"><h3 id="c-total">0</h3><p>Total Alunos</p></div>
         <div class="card ok" onclick="filtrar('OK')"><h3 id="c-ok">0</h3><p>Frequentando</p></div>
-        <div class="card atencao" onclick="filtrar('Atenção')"><h3 id="c-atencao">0</h3><p>Risco (26-50%)</p></div>
-        <div class="card risco" onclick="filtrar('Risco Alto')"><h3 id="c-risco">0</h3><p>Alto Risco (51-65%)</p></div>
-        <div class="card critico" onclick="filtrar('Desistente')"><h3 id="c-critico">0</h3><p>Desistentes (>65%)</p></div>
+        <div class="card alerta" onclick="filtrar('Alerta')"><h3 id="c-alerta">0</h3><p>Alerta (15-25%)</p></div>
+        <div class="card atencao" onclick="filtrar('Atenção')"><h3 id="c-atencao">0</h3><p>Atenção (26-50%)</p></div>
+        <div class="card risco" onclick="filtrar('Risco Alto')"><h3 id="c-risco">0</h3><p>Risco Alto (51-65%)</p></div>
+        <div class="card critico" onclick="filtrar('Desistente')"><h3 id="c-critico">0</h3><p>Desistente (>65%)</p></div>
     </div>
 
     <input id="busca" placeholder="🔍 Buscar aluno por nome..." style="width: 100%; padding: 12px; margin-bottom: 20px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 5px;">
@@ -102,7 +110,6 @@
         <span class="close-btn" onclick="fecharModal('modalAcao')">&times;</span>
         <h3>Registrar Ação</h3>
         <p id="acaoNomeAluno" style="font-weight:bold; color: #2196F3; font-size: 16px; margin-bottom: 15px;"></p>
-        <label style="font-size:12px; font-weight:bold; color:#555;">Tipo de Contato:</label>
         <select id="selTipoAcao" style="width:100%; padding:10px; margin-bottom: 15px;">
             <option value="📞 Ligação Telefônica">📞 Ligação Telefônica</option>
             <option value="📱 Mensagem WhatsApp">📱 Mensagem WhatsApp</option>
@@ -111,9 +118,8 @@
             <option value="⚠️ Conselho Tutelar">⚠️ Encaminhado ao Conselho Tutelar</option>
             <option value="📝 Outro">📝 Outro</option>
         </select>
-        <label style="font-size:12px; font-weight:bold; color:#555;">Detalhes:</label>
         <textarea id="txtDetalheAcao" placeholder="Escreva o retorno da conversa..."></textarea>
-        <button onclick="salvarAcaoPadronizada()" style="background:#2196F3; width:100%; padding:12px; margin-top:15px; font-size:16px; color: white; border: none; border-radius: 5px; cursor: pointer;">💾 Salvar</button>
+        <button onclick="salvarAcaoPadronizada()" style="background:#2196F3; width:100%; padding:12px; margin-top:15px; color: white; border-radius: 5px;">💾 Salvar</button>
     </div>
 </div>
 
@@ -121,17 +127,14 @@
     <div class="modal-content">
         <span class="close-btn" onclick="fecharModal('modalImport')">&times;</span>
         <h3>Importar Frequência</h3>
-        <label><b>1. Para qual matéria?</b></label>
         <select id="selImportMateria" style="width:100%; margin: 10px 0; padding: 8px;"></select>
-        <label><b>2. Cole os dados copiados:</b></label>
         <textarea id="txtImport" style="height:100px; font-family:monospace;" placeholder="Cole aqui..." oninput="atualizarPrevia()"></textarea>
         <div style="display:flex; gap:10px; margin-top:10px;">
             <div style="flex:1;"><label style="font-size:11px;">Coluna Nome (Nº)</label><input type="number" id="colNome" value="2" style="width:100%; padding:5px;" onchange="atualizarPrevia()"></div>
             <div style="flex:1;"><label style="font-size:11px;">Coluna Faltas (Nº)</label><input type="number" id="colFaltas" value="5" style="width:100%; padding:5px;" onchange="atualizarPrevia()"></div>
         </div>
         <div class="previa-box">
-            <div style="font-size:12px; font-weight:bold; color:#9c27b0; margin-bottom:5px;">👁️ Prévia (Ativos Detectados):</div>
-            <table style="width:100%; font-size:11px; border-collapse: collapse;"><tbody id="tbodyPrevia"></tbody></table>
+            <div id="tbodyPrevia" style="font-size:11px;"></div>
         </div>
         <button onclick="executarImportacao()" style="background:#9c27b0; width:100%; padding:12px; margin-top:15px; color:white;">💾 Salvar na Planilha</button>
     </div>
@@ -140,7 +143,6 @@
 <script>
 const SHEET_ID = "1NBBtdsqbR4FzNyNsCuG3K3HdSRk6QzT-QR2mnjHEXJ0"; 
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxYJlXYdZID3PUkDWnYDBMhD_IshytwlEsPnT1AO_1nZFRapx4D0ssFwXaZgRDKfc4F/exec"; 
-// headers=0 evita que o Google tente adivinhar o cabeçalho
 const CONFIG_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&headers=0&sheet=Config`;
 const HIST_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&headers=0&sheet=Historico`;
 
@@ -151,7 +153,6 @@ window.onload = carregarTudo;
 function carregarTudo() {
     fetch(`${HIST_URL}&t=${Date.now()}`).then(res => res.text()).then(data => {
         const json = JSON.parse(data.substring(47).slice(0, -2));
-        // Pula a linha 0 manualmente (cabeçalho da planilha)
         let rawRows = json.table.rows.slice(1);
         let hGeral = rawRows.map(r => ({ turma: r.c[0]?.v, aluno: r.c[1]?.v, data: r.c[3]?.f || r.c[3]?.v, acao: r.c[4]?.v })).filter(h => h.aluno);
         historicoGlobal = hGeral.filter(h => h.aluno !== "[SISTEMA]");
@@ -166,9 +167,7 @@ function carregarConfig() {
         const select = document.getElementById("selTurma"), sImport = document.getElementById("selImportMateria");
         select.innerHTML = "<option value=''>Selecione a turma...</option>";
         sImport.innerHTML = "<option value=''>Selecione a matéria...</option>";
-        estruturaEscola = {}; listaMateriasSimples = [];
-        
-        // Pula a linha 0 manualmente (cabeçalho da planilha)
+        estruturaEscola = {}; 
         let rawRows = json.table.rows.slice(1);
         rawRows.forEach(r => {
             let t = r.c[0]?.v, d = r.c[1]?.v, a = r.c[2]?.v, c = r.c[3]?.v;
@@ -199,7 +198,6 @@ async function processarTurma(turma) {
             .then(res => res.text()).then(txt => {
                 try { 
                     const raw = JSON.parse(txt.substring(47).slice(0,-2)).table.rows;
-                    // REMOVE A PRIMEIRA LINHA (CABECALHO QUE JA EXISTIA NA PLANILHA)
                     return { mat, linhas: raw.slice(1) }; 
                 } catch(e) { return { mat, linhas: [] }; }
             });
@@ -211,11 +209,24 @@ async function processarTurma(turma) {
             let nome = linha.c[0]?.v, faltas = linha.c[1]?.v || 0;
             if (nome) {
                 if (!mapaAlunos[nome]) mapaAlunos[nome] = { nome, status: "OK", prioridade: 0, detalhes: [] };
-                let perc = (faltas / carga) * 100, sMat = "OK";
-                if (perc > 65) sMat = "Desistente"; else if (perc > 50) sMat = "Risco Alto"; else if (perc > 25) sMat = "Atenção";
-                if (sMat !== "OK") mapaAlunos[nome].detalhes.push({ disciplina: disc, perc: perc.toFixed(0) + "%", faltas, status: sMat });
-                let p = sMat === "OK" ? 0 : (sMat === "Atenção" ? 1 : (sMat === "Risco Alto" ? 2 : 3));
-                if (p > mapaAlunos[nome].prioridade) { mapaAlunos[nome].prioridade = p; mapaAlunos[nome].status = sMat; }
+                let perc = (faltas / carga) * 100;
+                
+                let sMat = "OK";
+                if (perc > 65) sMat = "Desistente";
+                else if (perc > 50) sMat = "Risco Alto";
+                else if (perc > 25) sMat = "Atenção"; // CORRIGIDO PARA ATENÇÃO
+                else if (perc >= 15) sMat = "Alerta";
+
+                if (sMat !== "OK") {
+                    mapaAlunos[nome].detalhes.push({ disciplina: disc, perc: perc.toFixed(0) + "%", faltas, status: sMat });
+                }
+
+                let pesos = {"OK": 0, "Alerta": 1, "Atenção": 2, "Risco Alto": 3, "Desistente": 4};
+                let p = pesos[sMat];
+                if (p > mapaAlunos[nome].prioridade) { 
+                    mapaAlunos[nome].prioridade = p; 
+                    mapaAlunos[nome].status = sMat; 
+                }
             }
         });
     });
@@ -230,17 +241,27 @@ function filtrar(tipo) { dadosFiltrados = dadosConsolidados.filter(a => a.status
 function mostrar() {
     const tbody = document.getElementById("tabela-corpo");
     tbody.innerHTML = "";
-    let cont = { "OK": 0, "Atenção": 0, "Risco Alto": 0, "Desistente": 0 };
+    let cont = { "OK": 0, "Alerta": 0, "Atenção": 0, "Risco Alto": 0, "Desistente": 0 };
     dadosConsolidados.forEach(a => cont[a.status]++);
+    
     document.getElementById("c-total").innerText = dadosConsolidados.length;
     document.getElementById("c-ok").innerText = cont["OK"];
-    document.getElementById("c-atencao").innerText = cont["Atenção"];
+    document.getElementById("c-alerta").innerText = cont["Alerta"]; 
+    document.getElementById("c-atencao").innerText = cont["Atenção"]; // CARD ATENÇÃO
     document.getElementById("c-risco").innerText = cont["Risco Alto"];
     document.getElementById("c-critico").innerText = cont["Desistente"];
-    let cores = { "OK": "#2e7d32", "Atenção": "#f9a825", "Risco Alto": "#e67e22", "Desistente": "#c62828" };
+    
+    let cores = { "OK": "#2e7d32", "Alerta": "#fbc02d", "Atenção": "#f9a825", "Risco Alto": "#e67e22", "Desistente": "#c62828" };
     
     dadosFiltrados.forEach((aluno, index) => {
-        let hDisc = aluno.detalhes.map(d => `<span class="tag-materia ${d.status==='Desistente'||d.status==='Risco Alto'?'alert':''}">${d.disciplina}: ${d.faltas} (${d.perc})</span>`).join("") || "—";
+        let hDisc = aluno.detalhes.map(d => {
+            let tagClass = "tag-materia";
+            if (d.status === "Alerta") tagClass += " tag-alerta";
+            else if (d.status === "Atenção") tagClass += " tag-atencao";
+            else if (d.status !== "OK") tagClass += " tag-perigo";
+            return `<span class="${tagClass}">${d.disciplina}: ${d.faltas} (${d.perc})</span>`;
+        }).join("") || "—";
+        
         let tr = document.createElement("tr");
         tr.innerHTML = `
             <td style="color:#888;">${index + 1}</td>
@@ -256,36 +277,31 @@ function mostrar() {
 function verificarDataImportacao(t) {
     let div = document.getElementById("dataAtualizacao"); div.style.display = "inline-block";
     let imp = historicoSistema.filter(h => h.turma === t);
-    if (imp.length === 0) { div.innerHTML = "⚠️ Sem registro recente"; div.style.color = "#c62828"; div.style.background = "#ffebee"; return; }
-    let dStr = imp[imp.length - 1].data, p = dStr.split('/'), dI = new Date(p[2], p[1]-1, p[0]), diff = (new Date() - dI) / 86400000;
-    div.innerHTML = (diff > 7 ? "⚠️ Dados desatualizados" : "✅ Dados atualizados") + ` (${dStr})`;
-    div.style.color = diff > 7 ? "#c62828" : "#2e7d32"; div.style.background = diff > 7 ? "#ffebee" : "#e8f5e9";
+    if (imp.length === 0) { div.innerHTML = "⚠️ Sem registro"; return; }
+    let dStr = imp[imp.length-1].data, p = dStr.split('/'), dI = new Date(p[2], p[1]-1, p[0]), diff = (new Date()-dI)/86400000;
+    div.innerHTML = (diff > 7 ? "⚠️ Dados velhos" : "✅ Dados OK") + ` (${dStr})`;
+    div.style.color = diff > 7 ? "#c62828" : "#2e7d32";
 }
-
 function obterUltimaAcao(n) {
     let a = historicoGlobal.filter(h => h.aluno === n);
     return a.length === 0 ? "<span style='color:#ccc; font-size:11px'>Sem registro</span>" : `<b>${a[a.length-1].data}</b>`;
 }
-
 function verHistorico(n) {
     document.getElementById("modalHist").style.display = "flex";
     document.getElementById("modalTitulo").innerText = "Histórico: " + n;
     let r = historicoGlobal.filter(h => h.aluno === n).reverse(), l = document.getElementById("modalLista");
-    l.innerHTML = r.length ? r.map(a => `<div class="hist-item"><span class="hist-data">📅 ${a.data}</span><div class="hist-texto">${a.acao}</div></div>`).join("") : "<p>Nenhum registro.</p>";
+    l.innerHTML = r.length ? r.map(a => `<div class="hist-item"><span class="hist-data">📅 ${a.data}</span><div class="hist-texto">${a.acao}</div></div>`).join("") : "<p>Vazio</p>";
 }
-
-function abrirModalAcao(n) { alunoAcaoPendente = n; document.getElementById("acaoNomeAluno").innerText = "Aluno: " + n; document.getElementById("modalAcao").style.display = "flex"; }
-
+function abrirModalAcao(n) { alunoAcaoPendente = n; document.getElementById("acaoNomeAluno").innerText = n; document.getElementById("modalAcao").style.display = "flex"; }
 async function salvarAcaoPadronizada() {
     let t = document.getElementById("selTipoAcao").value, d = document.getElementById("txtDetalheAcao").value;
-    if (!d.trim()) return alert("Preencha os detalhes.");
+    if (!d.trim()) return alert("Preencha detalhes");
     document.getElementById("modalAcao").style.display = "none";
     try {
-        await fetch(SCRIPT_URL, { method: "POST", body: JSON.stringify({ turma: document.getElementById("selTurma").value, aluno: alunoAcaoPendente, faltas: "Acompanhamento", data: new Date().toLocaleDateString('pt-BR'), acao: `[${t}] ${d}` }) });
+        await fetch(SCRIPT_URL, { method: "POST", body: JSON.stringify({ turma: document.getElementById("selTurma").value, aluno: alunoAcaoPendente, faltas: "-", data: new Date().toLocaleDateString('pt-BR'), acao: `[${t}] ${d}` }) });
         alert("Salvo!"); carregarTudo(); 
-    } catch (e) { alert("Erro ao salvar."); }
+    } catch (e) { alert("Erro"); }
 }
-
 function abrirImportacao() { document.getElementById("modalImport").style.display = "flex"; }
 function atualizarPrevia() {
     let t = document.getElementById("txtImport").value.trim(), n = parseInt(document.getElementById("colNome").value)-1, f = parseInt(document.getElementById("colFaltas").value)-1, b = document.getElementById("tbodyPrevia");
@@ -296,31 +312,25 @@ function atualizarPrevia() {
         if(c.length > Math.max(n, f)) {
             let nm = c[n]?.trim(), flRaw = c[f]?.trim();
             if(nm && nm.length > 2 && flRaw !== "" && flRaw !== undefined) {
-                let fl = flRaw.replace(/\D/g,"") || "0";
-                dadosProntosParaSalvar.push([nm, fl]);
-                if(dadosProntosParaSalvar.length <= 5) b.innerHTML += `<tr><td>${nm}</td><td>${fl}</td></tr>`;
+                dadosProntosParaSalvar.push([nm, flRaw.replace(/\D/g,"") || "0"]);
+                if(dadosProntosParaSalvar.length <= 5) b.innerHTML += `<div>${nm}</div>`;
             }
         }
     });
 }
 async function executarImportacao() {
     let a = document.getElementById("selImportMateria").value;
-    if(!a || !dadosProntosParaSalvar.length) return alert("Selecione a matéria e cole dados válidos.");
-    if(!confirm(`Importar ${dadosProntosParaSalvar.length} alunos?`)) return;
-    
-    // Insere o cabeçalho "Aluno" e "Faltas" na linha 1 da planilha
+    if(!a || !dadosProntosParaSalvar.length) return alert("Selecione matéria e cole dados");
     let listaFinal = [["Aluno", "Faltas"], ...dadosProntosParaSalvar];
     let inf = listaMateriasSimples.find(m => m.aba === a);
-    
     try {
         await Promise.all([
             fetch(SCRIPT_URL, { method: "POST", body: JSON.stringify({ tipo: "IMPORTAR", abaDestino: a, lista: listaFinal }) }),
             fetch(SCRIPT_URL, { method: "POST", body: JSON.stringify({ turma: inf.turma, aluno: "[SISTEMA]", faltas: "-", data: new Date().toLocaleDateString('pt-BR'), acao: "Importação: " + inf.nome }) })
         ]);
-        alert(`Sucesso! ${dadosProntosParaSalvar.length} alunos importados.`); fecharModal('modalImport'); carregarTudo(); 
-    } catch(e) { alert("Erro."); }
+        alert("Sucesso!"); fecharModal('modalImport'); carregarTudo(); 
+    } catch(e) { alert("Erro"); }
 }
-
 function fecharModal(id) { document.getElementById(id).style.display = "none"; }
 document.getElementById("busca").addEventListener("input", function() {
     let t = this.value.toLowerCase();
