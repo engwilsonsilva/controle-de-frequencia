@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <title>Monitoramento de Evasão</title>
     <style>
-        /* --- ESTILOS VISUAIS (MANTIDOS 100%) --- */
+        /* --- ESTILOS VISUAIS (IDÊNTICOS) --- */
         body { font-family: 'Segoe UI', Tahoma, sans-serif; background: #f0f2f5; padding: 20px; color: #333; }
         .container { max-width: 1300px; margin: auto; background: white; padding: 25px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
         .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 2px solid #eee; padding-bottom: 15px; }
@@ -140,7 +140,7 @@
 <script>
 const SHEET_ID = "1NBBtdsqbR4FzNyNsCuG3K3HdSRk6QzT-QR2mnjHEXJ0"; 
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxYJlXYdZID3PUkDWnYDBMhD_IshytwlEsPnT1AO_1nZFRapx4D0ssFwXaZgRDKfc4F/exec"; 
-// MUDANÇA: headers=0 força o Google a não adivinhar cabeçalhos
+// headers=0 evita que o Google tente adivinhar o cabeçalho
 const CONFIG_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&headers=0&sheet=Config`;
 const HIST_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&headers=0&sheet=Historico`;
 
@@ -151,7 +151,7 @@ window.onload = carregarTudo;
 function carregarTudo() {
     fetch(`${HIST_URL}&t=${Date.now()}`).then(res => res.text()).then(data => {
         const json = JSON.parse(data.substring(47).slice(0, -2));
-        // Pulamos a linha 0 manualmente
+        // Pula a linha 0 manualmente (cabeçalho da planilha)
         let rawRows = json.table.rows.slice(1);
         let hGeral = rawRows.map(r => ({ turma: r.c[0]?.v, aluno: r.c[1]?.v, data: r.c[3]?.f || r.c[3]?.v, acao: r.c[4]?.v })).filter(h => h.aluno);
         historicoGlobal = hGeral.filter(h => h.aluno !== "[SISTEMA]");
@@ -168,7 +168,7 @@ function carregarConfig() {
         sImport.innerHTML = "<option value=''>Selecione a matéria...</option>";
         estruturaEscola = {}; listaMateriasSimples = [];
         
-        // Pulamos a linha 0 manualmente
+        // Pula a linha 0 manualmente (cabeçalho da planilha)
         let rawRows = json.table.rows.slice(1);
         rawRows.forEach(r => {
             let t = r.c[0]?.v, d = r.c[1]?.v, a = r.c[2]?.v, c = r.c[3]?.v;
@@ -195,12 +195,11 @@ async function processarTurma(turma) {
     verificarDataImportacao(turma);
     let mapaAlunos = {}, materias = estruturaEscola[turma];
     const promessas = materias.map(mat => {
-        // MUDANÇA: headers=0 aqui também
         return fetch(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&headers=0&sheet=${encodeURIComponent(mat.aba)}&t=${Date.now()}`)
             .then(res => res.text()).then(txt => {
                 try { 
                     const raw = JSON.parse(txt.substring(47).slice(0,-2)).table.rows;
-                    // REMOVEMOS A PRIMEIRA LINHA SEMPRE AQUI
+                    // REMOVE A PRIMEIRA LINHA (CABECALHO QUE JA EXISTIA NA PLANILHA)
                     return { mat, linhas: raw.slice(1) }; 
                 } catch(e) { return { mat, linhas: [] }; }
             });
@@ -309,7 +308,7 @@ async function executarImportacao() {
     if(!a || !dadosProntosParaSalvar.length) return alert("Selecione a matéria e cole dados válidos.");
     if(!confirm(`Importar ${dadosProntosParaSalvar.length} alunos?`)) return;
     
-    // IMPORTANTE: Insere cabeçalho
+    // Insere o cabeçalho "Aluno" e "Faltas" na linha 1 da planilha
     let listaFinal = [["Aluno", "Faltas"], ...dadosProntosParaSalvar];
     let inf = listaMateriasSimples.find(m => m.aba === a);
     
