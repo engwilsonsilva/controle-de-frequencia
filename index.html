@@ -34,12 +34,13 @@
         .btn-print { background: #555; padding: 10px 20px; font-size: 14px; }
         .btn-import { background: #9c27b0; padding: 10px 20px; font-size: 14px; margin-right: 10px; }
         .btn-criar { background: #4CAF50; padding: 10px 20px; font-size: 14px; margin-right: 10px; } 
+        .btn-refresh { background: #009688; padding: 10px 20px; font-size: 14px; margin-right: 10px; }
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center; }
         .modal-content { background: white; width: 600px; max-width: 95%; padding: 25px; border-radius: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); position: relative; max-height: 90vh; overflow-y: auto; }
         .close-btn { position: absolute; top: 15px; right: 20px; font-size: 24px; cursor: pointer; color: #999; }
         textarea, .input-modal { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px; margin-top: 5px; margin-bottom: 15px; box-sizing: border-box; }
         .info-atualizacao { font-size: 12px; font-weight: bold; margin-top: 5px; display: inline-block; padding: 3px 8px; border-radius: 4px; background: #f1f3f5; }
-        @media print { .cards, .top-bar button, select, label, input, .btn-acao, .btn-hist, .btn-import, .info-atualizacao, .btn-criar { display: none !important; } .top-bar { justify-content: center; border-bottom: 2px solid #000; } table { font-size: 10px; width: 100%; } th, td { border: 1px solid #000; padding: 4px; color: #000; } }
+        @media print { .cards, .top-bar button, select, label, input, .btn-acao, .btn-hist, .btn-import, .info-atualizacao, .btn-criar, .btn-refresh { display: none !important; } .top-bar { justify-content: center; border-bottom: 2px solid #000; } table { font-size: 10px; width: 100%; } th, td { border: 1px solid #000; padding: 4px; color: #000; } }
     </style>
 </head>
 <body>
@@ -52,6 +53,7 @@
             <div id="dataAtualizacao" class="info-atualizacao" style="display:none;"></div>
         </div>
         <div style="display:flex; gap:10px; align-items:center;">
+            <button onclick="location.reload()" class="btn-refresh">🔄 Atualizar (F5)</button>
             <button onclick="abrirCriarTurma()" class="btn-criar">🆕 Criar Turma</button>
             <button onclick="abrirImportacao()" class="btn-import">📤 Importar Dados</button>
             <button onclick="window.print()" class="btn-print">🖨️ Imprimir</button>
@@ -85,6 +87,7 @@
         <input type="text" id="txtNovaTurmaNum" placeholder="Ex: 11 ou 11A" class="input-modal">
         <label style="font-size:12px; font-weight:bold; color:#555;">Modalidade:</label>
         <select id="selNovaTurmaMod" class="input-modal" onchange="verificarEAD()">
+            <option value="" selected disabled>Escolha a Modalidade...</option>
             <option value="PRESENCIAL">Presencial</option>
             <option value="EAD (Semana)">EAD (Semana)</option>
             <option value="EAD (Sábado)">EAD (Sábado)</option>
@@ -110,10 +113,22 @@
     <div class="modal-content">
         <span class="close-btn" onclick="fecharModal('modalImport')">&times;</span>
         <h3>Importar Frequência</h3>
-        <select id="selImportMateria" class="input-modal"></select>
-        <textarea id="txtImport" style="height:100px; font-family:monospace;" placeholder="Cole aqui..." oninput="atualizarPrevia()" class="input-modal"></textarea>
+        
         <div style="display:flex; gap:10px;">
-            <div style="flex:1;"><label style="font-size:11px;">Coluna Nome (Nº)</label><input type="number" id="colNome" value="2" class="input-modal" oninput="atualizarPrevia()"></div>
+            <div style="flex:1;">
+                <label style="font-size:12px; font-weight:bold; color:#555;">1. Selecione a Turma</label>
+                <select id="selImportTurma" class="input-modal" onchange="atualizarDropdownMaterias()"></select>
+            </div>
+            <div style="flex:1;">
+                <label style="font-size:12px; font-weight:bold; color:#555;">2. Selecione a Matéria</label>
+                <select id="selImportMateria" class="input-modal" disabled><option value=''>Aguardando turma...</option></select>
+            </div>
+        </div>
+
+        <textarea id="txtImport" style="height:100px; font-family:monospace;" placeholder="Cole aqui os dados..." oninput="atualizarPrevia()" class="input-modal"></textarea>
+        
+        <div style="display:flex; gap:10px;">
+            <div style="flex:1;"><label style="font-size:11px;">Coluna Nome (Nº)</label><input type="number" id="colNome" value="3" class="input-modal" oninput="atualizarPrevia()"></div>
             <div style="flex:1;"><label style="font-size:11px;">Coluna Faltas (Nº)</label><input type="number" id="colFaltas" value="5" class="input-modal" oninput="atualizarPrevia()"></div>
         </div>
         <div class="previa-box">
@@ -128,7 +143,7 @@
 
 <script>
 const SHEET_ID = "1NBBtdsqbR4FzNyNsCuG3K3HdSRk6QzT-QR2mnjHEXJ0"; 
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzY2GI8yO7NgoFwxdZ4j7sTwM7MgcFlDCIkwFl04A8Vc8EF24Tg3O8CsXQqBp4MKKLZ/exec"; 
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxWDTU-H75O_GkxvNBVXYjzOHeyiObWIEbgTPJBfex2pDXe5DAJAH_A83vuanf3Sr5c/exec"; 
 const CONFIG_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&headers=0&sheet=Config`;
 const HIST_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&headers=0&sheet=Historico`;
 const MATRIZES_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&headers=0&sheet=Matrizes`;
@@ -153,9 +168,10 @@ function carregarTudo() {
 function carregarConfig() {
     fetch(`${CONFIG_URL}&t=${Date.now()}`).then(res => res.text()).then(data => {
         const json = JSON.parse(data.substring(47).slice(0, -2));
-        const select = document.getElementById("selTurma"), sImport = document.getElementById("selImportMateria");
+        const select = document.getElementById("selTurma"), sImportTurma = document.getElementById("selImportTurma");
         select.innerHTML = "<option value=''>Selecione a turma...</option>";
-        sImport.innerHTML = "<option value=''>Selecione a matéria...</option>";
+        sImportTurma.innerHTML = "<option value=''>1º Escolha a turma...</option>";
+        
         estruturaEscola = {}; listaMateriasSimples = [];
         let rawRows = json.table.rows.slice(1);
         rawRows.forEach(r => {
@@ -166,15 +182,36 @@ function carregarConfig() {
                 listaMateriasSimples.push({ nome: `${t} - ${d}`, aba: a, turma: t, disciplina: d }); 
             }
         });
+        
         Object.keys(estruturaEscola).sort((a,b)=>a.localeCompare(b,undefined,{numeric:true})).forEach(t => {
             let opt = document.createElement("option"); opt.value = t; opt.textContent = t; select.appendChild(opt);
+            let opt2 = document.createElement("option"); opt2.value = t; opt2.textContent = t; sImportTurma.appendChild(opt2);
         });
-        listaMateriasSimples.forEach(m => {
-            let opt = document.createElement("option"); opt.value = m.aba; opt.textContent = m.nome; sImport.appendChild(opt);
-        });
+
         select.addEventListener("change", () => processarTurma(select.value));
         carregarMatrizes(); 
         document.getElementById("loading").style.display = "none";
+    });
+}
+
+// NOVA FUNÇÃO: FILTRO EM CASCATA DA IMPORTAÇÃO
+function atualizarDropdownMaterias() {
+    let turmaSelecionada = document.getElementById("selImportTurma").value;
+    let sImportMateria = document.getElementById("selImportMateria");
+    sImportMateria.innerHTML = "<option value=''>Selecione a matéria...</option>";
+
+    if(!turmaSelecionada) {
+        sImportMateria.disabled = true;
+        return;
+    }
+
+    sImportMateria.disabled = false;
+    let materias = estruturaEscola[turmaSelecionada] || [];
+    materias.forEach(m => {
+        let opt = document.createElement("option"); 
+        opt.value = m.aba; 
+        opt.textContent = m.disciplina; 
+        sImportMateria.appendChild(opt);
     });
 }
 
@@ -212,7 +249,7 @@ function verificarEAD() {
     let divAulas = document.getElementById("divAulasEAD");
     let listaHTML = document.getElementById("listaDisciplinasEAD");
     
-    if(mod.includes("EAD") && curso !== "") {
+    if(mod && mod.includes("EAD") && curso !== "") {
         let materias = matrizesGlobais.filter(m => m.curso === curso);
         let html = "";
         materias.forEach(mat => {
@@ -240,7 +277,7 @@ async function executarCriarTurma() {
     let mod = document.getElementById("selNovaTurmaMod").value;
     let curso = document.getElementById("selNovaTurmaCurso").value;
 
-    if(!num || !curso) return alert("Por favor, preencha o nome/número e selecione o curso.");
+    if(!num || !curso || !mod) return alert("Por favor, preencha o número, curso e escolha a modalidade!");
 
     let customAulas = {};
     if (mod.includes("EAD")) {
@@ -264,6 +301,7 @@ async function executarCriarTurma() {
         alert("✅ Turma criada! Tudo pronto para receber dados.");
         fecharModal('modalNovaTurma');
         document.getElementById("txtNovaTurmaNum").value = "";
+        document.getElementById("selNovaTurmaMod").value = "";
         verificarEAD();
         carregarTudo(); 
     } catch(e) { alert("Erro de comunicação."); } 
@@ -347,9 +385,6 @@ function abrirImportacao() {
     document.getElementById("modalImport").style.display = "flex"; 
 }
 
-// ----------------------------------------------------
-// A MÁGICA DE AUTOCORREÇÃO DO IMPORTADOR
-// ----------------------------------------------------
 function atualizarPrevia() {
     let txt = document.getElementById("txtImport").value.trim();
     let b = document.getElementById("tbodyPrevia");
@@ -374,8 +409,6 @@ function atualizarPrevia() {
         let nm = c[n];
         let flRaw = c[f];
         
-        // AUTOCORREÇÃO: Se as colunas que você indicou não existirem, mas o texto tiver colunas,
-        // ele pega automaticamente o primeiro texto da esquerda e o último número da direita!
         if (nm === undefined || flRaw === undefined) {
             if (c.length >= 2) {
                 nm = c[0];
@@ -387,7 +420,6 @@ function atualizarPrevia() {
         if (flRaw) flRaw = flRaw.trim();
 
         if (nm && nm.length > 2 && flRaw !== "" && flRaw !== undefined) {
-            // Ignorar cabeçalho copiado sem querer
             if (nm.toLowerCase() === "aluno" || nm.toLowerCase() === "nome") return;
 
             let faltas = flRaw.replace(/\D/g, "");
@@ -429,8 +461,15 @@ async function executarImportacao() {
             fetch(SCRIPT_URL, { method: "POST", body: JSON.stringify({ turma: inf.turma, aluno: "[SISTEMA]", faltas: "-", data: new Date().toLocaleDateString('pt-BR'), acao: "Importação: " + inf.nome }) }) 
         ]); 
         alert(`Sucesso! ${dadosProntosParaSalvar.length} alunos guardados no Banco de Dados.`); 
-        fecharModal('modalImport'); 
+        
+        // --- NOVA FUNÇÃO: LIMPEZA TOTAL DO CACHE DA JANELA APÓS IMPORTAR ---
         document.getElementById("txtImport").value = "";
+        document.getElementById("selImportTurma").value = "";
+        document.getElementById("selImportMateria").innerHTML = "<option value=''>Aguardando turma...</option>";
+        document.getElementById("selImportMateria").disabled = true;
+        document.getElementById("tbodyPrevia").innerHTML = "<tr><td colspan='2' style='text-align:center; color:#888;'>Aguardando dados...</td></tr>";
+        dadosProntosParaSalvar = [];
+        fecharModal('modalImport'); 
         carregarTudo(); 
     } catch(e) { 
         alert("Erro ao guardar."); 
